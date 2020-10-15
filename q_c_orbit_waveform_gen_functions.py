@@ -86,8 +86,8 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     
     #1 - find time to coalescence using equation 4.21, given a lower frequency limit
     time_until_coalescence = 2.18*((1.21*1.989*10e30)/M_c)**(5/3) * (100/f_lower)**(8/3)
-    print('duration (s):', time_until_coalescence, '(min):', time_until_coalescence/60)
-    print('df:', 1.0/time_until_coalescence)
+    print('Strain waveform observer time parameters', 'duration (s):', time_until_coalescence, '(min):', time_until_coalescence/60,
+          'df:', 1.0/time_until_coalescence)
     
     #2 - find tau now as a function of observer time instead of retarded time (pg 170)
     t = np.arange(0, int(time_until_coalescence), dt)
