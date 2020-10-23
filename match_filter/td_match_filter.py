@@ -189,19 +189,19 @@ print('Generated waveform properties', 'size:', np.size(hp_ts),
 # #Copy Waveform Template
 waveform = hp_ts.copy()
 
-# #increase length of waveform to prepare for resampling
+# #increase length of waveform to match noise curve
 waveform.resize(np.size(combined_ts))
 
 print('Resized Waveform properties:', 'size:', np.size(waveform), 
         'duration:', waveform.duration, 'dt:', waveform.delta_t, 
         'df:', waveform.delta_f)
 
-#plot waveform after resizing and before resampling
-plt.figure()
-plt.plot(waveform.sample_times, waveform, label='resized')
-#plt.xlim(10000,12000)
-plt.legend()
-plt.show()
+#plot waveform after resizing
+# plt.figure()
+# plt.plot(waveform.sample_times, waveform, label='resized')
+# #plt.xlim(10000,12000)
+# plt.legend()
+# plt.show()
 
 #Resample ( I may not need this if my waveform generator already creates a waveform at 0.1 dt)
 #resample_num = int(waveform.duration / 0.1)
@@ -275,10 +275,13 @@ match_template = hp.copy()
 # resample_num = int(match_template.duration / 0.1)
 # match_template_resampled = sp.signal.resample(match_template, resample_num)
 
-# match_template = types.timeseries.TimeSeries(match_template_resampled, delta_t = 0.1)
+#match_template = types.timeseries.TimeSeries(match_template_resampled, delta_t = 0.1)
+match_template = types.timeseries.TimeSeries(match_template, delta_t = 0.1)
 
+#get the match template to the same size as the noise data and rotate the match template so the merger is apprx
+#at the first bin
 match_template.resize(np.size(conditioned))
-match_template = match_template.cyclic_time_shift(-10)
+match_template = match_template.cyclic_time_shift(-hp_ts.end_time+100)
 
 # #Check properties and Perform the Matched filtering
 # print('mt, cond., grace_psd:', 'sizes:', np.size(match_template), np.size(conditioned), np.size(grace_psd),
@@ -289,16 +292,17 @@ match_template = match_template.cyclic_time_shift(-10)
 plt.figure()
 plt.plot(match_template.sample_times, match_template, label='match template')
 #plt.xlim(-0,50)
+plt.legend()
 plt.show()
 
 snr1 = matched_filter(match_template, conditioned, psd=grace_psd)
 
 snr1 = snr1.crop(10,10)
 
-# #Viewing matched filter snr timeseries
-# plt.plot(snr1.sample_times, abs(snr1), label='snr')
-# plt.ylabel('Signal-to-noise')
-# plt.xlabel('Time (s)')
-# plt.grid()
-# plt.legend()
-# plt.show()
+#Viewing matched filter snr timeseries
+plt.plot(snr1.sample_times, abs(snr1), label='snr')
+plt.ylabel('Signal-to-noise')
+plt.xlabel('Time (s)')
+plt.grid()
+plt.legend()
+plt.show()
