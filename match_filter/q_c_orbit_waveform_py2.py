@@ -2,7 +2,7 @@
 """
 Quasi-circular orbit functions adapted for python 2 order of operations syntax
 
-Created on Wed Oct 21 16:38:52 2020
+version 10/22/20 4:54pm
 
 @author: john
 """
@@ -85,8 +85,6 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     
     #1 - find time to coalescence using equation 4.21, given a lower frequency limit
     time_until_coalescence = 2.18*((1.21*1.989*10e30)/M_c)**(5.0/3.0) * (100.0/f_lower)**(8.0/3.0)
-    print('Strain waveform observer time parameters', 'duration (s):', time_until_coalescence, '(min):', time_until_coalescence/60,
-          'df:', 1.0/time_until_coalescence)
     
     #2 - find tau now as a function of observer time instead of retarded time (pg 170)
     t = np.arange(0, int(time_until_coalescence), dt)
@@ -98,5 +96,8 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     #4 - calculate plus and cross polarizations from equations 4.29
     h_plus = A*((5.0/(c*tau))**(1.0/4.0)) * (1+(np.cos(theta)**2.0)) * 0.5 * np.cos(Phi)
     h_cross = A*((5.0/(c*tau))**(1.0/4.0)) * (np.cos(theta)) * np.sin(Phi)
+    
+    print('Strain waveform observer time parameters', 'time array size:', np.size(t), 'duration (s):', time_until_coalescence, '(min):', time_until_coalescence/60,
+          'df:', 1.0/time_until_coalescence)
     
     return t, h_plus, h_cross

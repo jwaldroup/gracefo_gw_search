@@ -17,7 +17,7 @@ from pycbc import types
 from pycbc import psd
 
 import pycbc_welch_function as welch_function
-import q_c_orbit_waveform_gen_functions as q_c_apx
+#import q_c_orbit_waveform_gen_functions as q_c_apx
 import q_c_orbit_waveform_py2 as q_c_py2
 
 
@@ -81,10 +81,10 @@ dt = filtered1.delta_t
 T = dt * N
 f_s = 1.0 / dt
 f_nyq = f_s / 2.0
-print('Noise Curve 1 - ','N:', N, 'dt:', 0.1,'df:', df,'f_s:', f_s,'f_nyq:', f_nyq)
+#print('Noise Curve 1 - ','N:', N, 'dt:', 0.1,'df:', df,'f_s:', f_s,'f_nyq:', f_nyq)
 
 ##Curve 2: the "linear" portion------------------------------------------------------------------------------
-N = 400000 
+N = 400000
 cutoff = 0.0001 #0.001 #0.001   
 order = 3400 #3000 #1000  
 beta = 9.0 #8.0 #1  
@@ -115,7 +115,7 @@ dt = filtered2.delta_t
 T = dt * N
 f_s = 1.0 / dt
 f_nyq = f_s / 2.0
-print('Noise Curve 2 - ','N:', N, 'dt:', 0.1,'df:', df,'f_s:', f_s,'f_nyq:', f_nyq)
+#print('Noise Curve 2 - ','N:', N, 'dt:', 0.1,'df:', df,'f_s:', f_s,'f_nyq:', f_nyq)
 
 
 #----------------------------------------------------------------------------------------------------------
@@ -138,15 +138,15 @@ combined_ts = types.timeseries.TimeSeries(combined, filtered1.delta_t) #ensures 
 combined_fs = welch_function.pycbc_welch(combined_ts, 2)
 
 #display some important parameters
-print('Combined psd FrequencySeries:','size:', np.size(combined_fs), 'df:', combined_fs.delta_f)
+#print('Combined psd FrequencySeries:','size:', np.size(combined_fs), 'df:', combined_fs.delta_f)
 print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:', 
       combined_ts.duration, 'dt:', combined_ts.delta_t,'df:', 
-      combined_ts.delta_f,'f_s:', (1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2)
+      combined_ts.delta_f,'f_s:', (1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2.0)
 
 ##Compare merged noise curves with gracefo data
 # plt.loglog(combined_fs.sample_frequencies, np.sqrt(combined_fs), label='test')
-# plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
-# plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
+# #plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
+# #plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
 # plt.loglog(grace_freqs, grace_strain, label='gracefo')
 
 # plt.legend()
@@ -155,32 +155,31 @@ print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:',
 # plt.grid()
 # plt.legend()
 
-# plt.savefig('grace_fo_model_curve_comparison.png')
+# # plt.savefig('grace_fo_model_curve_comparison.png')
 # plt.show()
 
 # 4 - Generate time domain noise curve----------------------------------------------------------------------------
 
 
 #binary system parameters
-m1 = 100.0 #solar mass multiples
-m2 = 100.0
+m1 = 500.0 #solar mass multiples
+m2 = 500.0
 f_low = 0.1
 r = 1.0 #in parsecs
-dt = 0.1#combined_ts.delta_t
+dt = 0.1 #combined_ts.delta_t
 theta = 0.0 
 
 #generate waveform as seen by observer
-#wf_t_array, hp, hc = q_c_apx.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
 wf_t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
 
 
 #convert strain arrays to timeseries objects
-#hp_ts = types.timeseries.TimeSeries(hp, combined_ts.delta_t) #ensures same delta_t
-#hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
+hp_ts = types.timeseries.TimeSeries(hp, combined_ts.delta_t) #ensures same delta_t
+hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
 
-# print('Generated waveform properties', 'size:', np.size(hp_ts), 
-#       'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
-#       'df:', hp_ts.delta_f)
+print('Generated waveform properties', 'size:', np.size(hp_ts), 
+      'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
+      'df:', hp_ts.delta_f)
 
 # 4.1 preparing waveform for injection
 
@@ -188,26 +187,27 @@ wf_t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r,
 #need time duration to be equivalent to the noise curve time (combined_ts.duration) = 39800 s
 
 # #Copy Waveform Template
-# #waveform = hp_ts.copy()
+waveform = hp_ts.copy()
 
 # #increase length of waveform to prepare for resampling
-# waveform.resize(np.size(combined_ts))
+waveform.resize(np.size(combined_ts))
 
-# print('Resized Waveform properties:', 'size:', np.size(waveform), 
-#       'duration:', waveform.duration, 'dt:', waveform.delta_t, 
-#       'df:', waveform.delta_f)
+print('Resized Waveform properties:', 'size:', np.size(waveform), 
+        'duration:', waveform.duration, 'dt:', waveform.delta_t, 
+        'df:', waveform.delta_f)
 
-# #plot waveform after resizing and before resampling
-# plt.figure()
-# plt.plot(waveform.sample_times, waveform, label='padded')
-# plt.xlim(-20,20)
-# plt.legend()
+#plot waveform after resizing and before resampling
+plt.figure()
+plt.plot(waveform.sample_times, waveform, label='resized')
+#plt.xlim(10000,12000)
+plt.legend()
+plt.show()
 
-#Resample
+#Resample ( I may not need this if my waveform generator already creates a waveform at 0.1 dt)
 #resample_num = int(waveform.duration / 0.1)
 #waveform_resampled = sp.signal.resample(waveform, resample_num)
 #waveform = types.timeseries.TimeSeries(waveform_resampled, delta_t = 0.1)
-#print('Resampled:', 'size:', np.size(waveform), 'duration:', 
+#print('Resampled waveform:', 'size:', np.size(waveform), 'duration:', 
 #      waveform.duration, 'dt:', waveform.delta_t, 'df:', waveform.delta_f )
 
 # waveform.resize(np.size(combined_ts))
@@ -217,37 +217,34 @@ wf_t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r,
 
 # plt.figure()
 # plt.plot(waveform.sample_times, waveform, label='waveform resampled')
-# plt.xlim(-20,20)
+# #plt.xlim(10000,12000)
 # plt.legend()
-plt.show()
+# plt.show()
 
 # ## 5 - Injection ----------------------------------------------------------------------------------------------------
 
-# #Noise curve unique copy
-# combined_tsc = combined_ts.copy()
-
-# #uncomment to check noise ts
-# #plt.plot(combined_tsc.sample_times, combined_tsc, label='noise')
+# # #Noise curve unique copy
+combined_tsc = combined_ts.copy()
 
 # #roll the template vector to a random index
-# random_index = 100000
-# random_waveform = np.roll(waveform, random_index)
+random_index = 0
+random_waveform = np.roll(waveform, random_index)
 
 # #inject into timeseries
-# injected_array = np.array(combined_tsc) + np.array(random_waveform)
-# injected_ts = types.timeseries.TimeSeries(injected_array, delta_t=combined_tsc.delta_t)
+injected_array = np.array(combined_tsc) + np.array(random_waveform)
+injected_ts = types.timeseries.TimeSeries(injected_array, delta_t=combined_tsc.delta_t)
 
-# print('injected ts properties:', 'size:', np.size(injected_ts), 
-#       'duration:', injected_ts.duration, 'dt:', injected_ts.delta_t, 
-#       'df:', injected_ts.delta_f)
+print('injected ts properties:', 'size:', np.size(injected_ts), 
+        'duration:', injected_ts.duration, 'dt:', injected_ts.delta_t, 
+        'df:', injected_ts.delta_f)
 
 # #display for examination
-# test_waveform = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
+test_waveform = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
 
 # plt.figure()
 # plt.plot(waveform.sample_times, waveform, label='original')
 # plt.plot(test_waveform.sample_times, test_waveform, label='random shift')
-# plt.xlim(10000, 10050)
+# #plt.xlim(10000, 10050)
 # plt.grid()
 # plt.legend()
 # plt.show()
@@ -255,48 +252,48 @@ plt.show()
 # ## 6 - Matched filter - condition the noise curve and prepare psd -----------------------------------
 
 
-# #Highpass the noise curve with injected waveform above 10e-2 Hz
-# injected_ts_highpass = highpass(injected_ts, 0.01)
+#Highpass the noise curve with injected waveform above 10e-2 Hz
+injected_ts_highpass = highpass(injected_ts, 0.01)
 
-# #crop to avoid filter wraparound
-# conditioned = injected_ts_highpass.crop(2,2)
+#crop to avoid filter wraparound
+conditioned = injected_ts_highpass.crop(2,2)
 
-# #display to check for excessive wraparound -> increase crop length
-# plt.figure()
-# plt.plot(conditioned.sample_times, conditioned, label='conditioned data for matched filter')
-# plt.legend()
-# plt.show()
+#display to check for excessive wraparound -> increase crop length
+plt.figure()
+plt.plot(conditioned.sample_times, conditioned, label='conditioned data for matched filter')
+plt.legend()
+plt.show()
 
 # #make sure psd is of same delta_f as the noise data timeseries
-# grace_psd = psd.interpolate(combined_fs, conditioned.delta_f)
+grace_psd = psd.interpolate(combined_fs, conditioned.delta_f)
 
 # #adjust template for match
-# match_template = hp.copy()
+match_template = hp.copy()
 
-# match_template.resize(10*np.size(combined_tsc))
+#match_template.resize(np.size(combined_tsc))
 
 # resample_num = int(match_template.duration / 0.1)
 # match_template_resampled = sp.signal.resample(match_template, resample_num)
 
 # match_template = types.timeseries.TimeSeries(match_template_resampled, delta_t = 0.1)
 
-# match_template.resize(np.size(conditioned))
-# #match_template = match_template.cyclic_time_shift(-10)
+match_template.resize(np.size(conditioned))
+match_template = match_template.cyclic_time_shift(-10)
 
 # #Check properties and Perform the Matched filtering
 # print('mt, cond., grace_psd:', 'sizes:', np.size(match_template), np.size(conditioned), np.size(grace_psd),
 #       'dt:', match_template.delta_t, conditioned.delta_t, grace_psd.delta_t, 
 #       'df:', match_template.delta_f, conditioned.delta_f, grace_psd.delta_f)
 
-# #check to see if shift approximately has merger at start of the data
-# plt.figure()
-# plt.plot(match_template.sample_times, match_template, label='match template')
-# plt.xlim(-0,50)
-# plt.show()
+#check to see if shift approximately has merger at start of the data
+plt.figure()
+plt.plot(match_template.sample_times, match_template, label='match template')
+#plt.xlim(-0,50)
+plt.show()
 
-# snr1 = matched_filter(match_template, conditioned )#, psd=grace_psd)
+snr1 = matched_filter(match_template, conditioned, psd=grace_psd)
 
-# snr1 = snr1.crop(10,10)
+snr1 = snr1.crop(10,10)
 
 # #Viewing matched filter snr timeseries
 # plt.plot(snr1.sample_times, abs(snr1), label='snr')
