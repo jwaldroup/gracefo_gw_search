@@ -22,10 +22,10 @@ def chirp_mass(m1, m2):
 #Creates basic sinusoidal waveform of non-changing frequency
 def constant_f_strain_waveform(m1, m2, f_gw, duration, dt, r, theta, phi):
     
-    #parameters to define
+   #Unchanging parameters to define
     M_c = chirp_mass(m1,m2)
     G = 6.67*10e-11
-    c = 3.0*10e8
+    c = 3.0*1e8
     distance = r*(3.0857e16)
     A = (4.0/distance)*((G*M_c) / (c**2.0))**(5.0/3.0)
     
@@ -38,6 +38,8 @@ def constant_f_strain_waveform(m1, m2, f_gw, duration, dt, r, theta, phi):
     #compute strain amplitudes
     h_plus = A*(((np.pi*f_gw)/c)**(2.0/3.0)) * (1+(np.cos(theta))**2.0) * 0.5 * np.cos(2.0*np.pi*f_gw*t_ret+2.0*phi)
     h_cross = A*(((np.pi*f_gw)/c)**(2.0/3.0)) * np.cos(theta) * np.sin(2.0*np.pi*f_gw*t_ret+2.0*phi)
+    
+    print('constant frequency wave:', 'time array size:', np.size(t), 'duration (s):', duration, 'frequency (hz):', f_gw)
     
     return t, h_plus, h_cross
 
