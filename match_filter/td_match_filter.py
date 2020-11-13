@@ -18,7 +18,7 @@ from pycbc import psd
 
 import pycbc_welch_function as welch_function
 import q_c_orbit_waveform_py2 as q_c_py2
-
+import zero_finder
 
 #Script Overview
 # 1. Import and display GRACE-FO data
@@ -168,31 +168,39 @@ r = 100.0 #in parsecs
 dt = combined_ts.delta_t #0.1
 theta = 0.0 
 
-# #generate waveform as seen by observer
-# t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
+#generate waveform as seen by observer
+t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
 
-# #convert strain arrays to timeseries objects
-# hp_ts = types.timeseries.TimeSeries(hp, combined_ts.delta_t) #ensures same delta_t
-# hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
+#truncate such that graph ends by going smoothly to zero
+# hp = zero_finder.last_zero_finder(hp)
+# hp = zero_finder.first_zero_finder(hp)
 
-# print('Generated waveform properties', 'size:', np.size(hp_ts), 
-#       'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
-#       'df:', hp_ts.delta_f)
+#convert strain arrays to timeseries objects
+hp_ts = types.timeseries.TimeSeries(hp, combined_ts.delta_t) #ensures same delta_t
+hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
+
 
 #Testing matched filter with zero mean sinusoid waveform------------------------------------------------
 #Generate test sinusoidal waveform at constant frequency to try injecting instead
-f_gw = 0.1
-duration = int(10 * 1.0/f_gw) #about 100 seconds
-phi = 0.0
-t_const, hp_const, hc_const = q_c_py2.constant_f_strain_waveform(m1, m2, f_gw, duration, dt, r, theta, phi)
 
-#convert strain arrays to timeseries objects
-hp_ts = types.timeseries.TimeSeries(hp_const, combined_ts.delta_t) #ensures same delta_t
-hc_ts = types.timeseries.TimeSeries(hc_const, combined_ts.delta_t)
+# t = np.arange(0, 10*np.pi , 0.1)
+# sine_signal = 1e-9 * np.sin(t)
+# sine_signal = sine_signal - np.mean(sine_signal)
 
-print('Generated waveform properties', 'size:', np.size(hp_ts), 
-       'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
-       'df:', hp_ts.delta_f)
+# plt.plot(t, sine_signal, label='basic zero mean sine')
+# plt.legend()
+# plt.show()
+
+# print('sine mean:', np.mean(sine_signal))
+#-----------------------------------------------------------------------------------------------------------
+
+# #convert strain arrays to timeseries objects
+# hp_ts = types.timeseries.TimeSeries(hp_const, delta_t= combined_ts.delta_t) #ensures same delta_t
+# hc_ts = types.timeseries.TimeSeries(hc_const, delta_t= combined_ts.delta_t)
+
+# print('Generated waveform properties', 'size:', np.size(hp_ts), 
+#        'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
+#        'df:', hp_ts.delta_f)
 
 # 4.1 preparing waveform for injection-----------------------------------------------------------------------
 
@@ -201,6 +209,14 @@ print('Generated waveform properties', 'size:', np.size(hp_ts),
 
 # #Copy Waveform Template
 waveform = hp_ts.copy()
+# waveform = sine_signal.copy()
+# waveform = types.timeseries.TimeSeries(waveform, delta_t=combined_ts.delta_t)
+
+#subtract non-zero mean from array
+#waveform = waveform - np.mean(waveform)
+
+#and check
+print("waveform average:", np.mean(waveform))
 
 # #increase length of waveform to match noise curve
 waveform.resize(np.size(combined_ts))
@@ -215,10 +231,10 @@ plt.plot(waveform.sample_times, waveform, label='resized and plotted against tim
 plt.legend()
 plt.show()
 
-plt.figure()
-plt.plot(waveform, label='plotted against array elements')
-plt.legend()
-plt.show()
+# plt.figure()
+# plt.plot(waveform, label='plotted against array elements')
+# plt.legend()
+# plt.show()
 
 
 #Resampling of waveform incase waveform generated at dt other than 0.1------------------------------------------------
@@ -243,85 +259,117 @@ plt.show()
 
 # ## 5 - Injection ----------------------------------------------------------------------------------------------------
 
-# # # #Noise curve unique copy
-# combined_tsc = combined_ts.copy()
+# # #Noise curve unique copy
+combined_tsc = combined_ts.copy()
 
-# # #roll the template vector to a random index
-# #shift_seconds = 10000 #test example for now - should be random second between 0 and combined_tsc.duration-length of waveform
-# #random_waveform = waveform.cyclic_time_shift(shift_seconds)#np.roll(waveform, random_index)
+# #roll the template vector to a random index
+#shift_seconds = 10000 #test example for now - should be random second between 0 and combined_tsc.duration-length of waveform
+#random_waveform = waveform.cyclic_time_shift(shift_seconds)#np.roll(waveform, random_index)
 
-# random_index = 0#100000
-# random_waveform = np.roll(waveform, random_index)
+random_index = 200000
+random_waveform = np.roll(waveform, random_index)
 
-# # #inject into timeseries
-# injected_array = np.array(combined_tsc) + np.array(random_waveform)
-# injected_ts = types.timeseries.TimeSeries(injected_array, delta_t=combined_tsc.delta_t)
+## this section checks the roll position of the waveform when uncommented
+rand_wf_ts = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
 
-# print('injected ts properties:', 'size:', np.size(injected_ts), 
-#         'duration:', injected_ts.duration, 'dt:', injected_ts.delta_t, 
-#         'df:', injected_ts.delta_f)
-
-# # #display for examination
-# test_waveform = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
+plt.figure()
+plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='resized and plotted against time')
+plt.legend()
+plt.show()
 
 # plt.figure()
-# #plt.plot(waveform.sample_times, waveform, label='original')
-# plt.plot(test_waveform, label=('random shift '+str(random_index)+' pts'))
-# #plt.xlim(10000, 10050)
+# plt.plot(rand_wf_ts, label='plotted against array elements')
+# plt.legend()
+# plt.show()
+
+# #inject into timeseries
+injected_array = np.array(combined_tsc) + np.array(random_waveform)
+injected_ts = types.timeseries.TimeSeries(injected_array, delta_t=combined_tsc.delta_t)
+
+print('injected ts properties:', 'size:', np.size(injected_ts), 
+        'duration:', injected_ts.duration, 'dt:', injected_ts.delta_t, 
+        'df:', injected_ts.delta_f)
+
+# #display for visual evaluation
+# plt.figure()
+# plt.plot(injected_ts.sample_times, injected_ts, label=('random shift '+str(random_index)+' pts'))
+# plt.xlabel('times (s)')
+# plt.ylabel('Noise + hidden signal strain amplitude')
 # plt.grid()
 # plt.legend()
 # plt.show()
 
-# # ## 6 - Matched filter - condition the noise curve and prepare psd -----------------------------------
+## 6 - Matched filter - condition the noise curve and prepare psd -----------------------------------
 
+# 6.1 Prepatory steps and creating the match template-------------------------------------------------
+#Highpass the noise curve with injected waveform above 10e-2 Hz
+injected_ts_highpass = highpass(injected_ts, 0.01)
 
-# #Highpass the noise curve with injected waveform above 10e-2 Hz
-# injected_ts_highpass = highpass(injected_ts, 0.01)
+#crop to avoid filter wraparound
+conditioned = injected_ts_highpass.crop(2,2)
 
-# #crop to avoid filter wraparound
-# conditioned = injected_ts_highpass.crop(2,2)
-
-# #display to check for excessive wraparound -> increase crop length
+#display to check for excessive wraparound -> increase crop length
 # plt.figure()
 # plt.plot(conditioned.sample_times, conditioned, label='conditioned data for matched filter')
+# plt.xlabel('times (s)')
+# plt.ylabel('Noise + hidden signal strain amplitude')
 # plt.legend()
 # plt.show()
 
-# # #make sure psd is of same delta_f as the noise data timeseries
-# grace_psd = psd.interpolate(combined_fs, conditioned.delta_f)
+#make sure psd is of same delta_f as the noise data timeseries
+grace_psd = psd.interpolate(combined_fs, conditioned.delta_f)
 
-# # #adjust template for match
-# match_template = hp.copy()
+#create the template for the matched filter 
+match_template = hp_ts.copy()
+match_template = types.timeseries.TimeSeries(match_template, delta_t = 0.1)
 
-# match_template = types.timeseries.TimeSeries(match_template, delta_t = 0.1)
+#Create template for sine wave test
+# match_template = sine_signal.copy()
+# match_template = types.timeseries.TimeSeries(match_template, delta_t=combined_ts.delta_t)
 
+#subtract non-zero mean
+#match_template = match_template - np.mean(match_template)
 
-# #get the match template to the same size as the noise data and rotate the match template so the merger is apprx
-# #at the first bin
-# match_template.resize(np.size(conditioned))
-# match_template = match_template.cyclic_time_shift((match_template.start_time - hp_ts.duration + 0.1))
+#check to see if zero mean
+print("template array average:", np.mean(match_template))
 
+#get the match template to the same size as the noise data 
+match_template.resize(np.size(conditioned))
 
-# # #Check properties and Perform the Matched filtering
-# # print('mt, cond., grace_psd:', 'sizes:', np.size(match_template), np.size(conditioned), np.size(grace_psd),
-# #       'dt:', match_template.delta_t, conditioned.delta_t, grace_psd.delta_t, 
-# #       'df:', match_template.delta_f, conditioned.delta_f, grace_psd.delta_f)
+#match_template = match_template + np.mean(match_template)
 
-# #check to see if shift approximately has merger at start of the data
+plt.figure()
+plt.plot(match_template.sample_times, match_template, label='match template')
+plt.xlabel('time (s)')
+plt.legend()
+plt.show()
+
+#Tutorial says rotate the template to have merger at approx the first bin
+#match_template = match_template.cyclic_time_shift((match_template.start_time - hp_ts.duration + 0.1))
+
+# match_roll = np.roll(match_template, - (np.size(hp_ts)-10))
+# match_template = types.timeseries.TimeSeries(match_roll, delta_t=conditioned.delta_t)
+
 # plt.figure()
-# plt.plot( match_template, label='match template')
-# #plt.xlim(-0,50)
+# plt.plot(match_template.sample_times, match_template, label='match template rolled')
+# plt.xlabel('time (s)')
 # plt.legend()
 # plt.show()
 
-# snr1 = matched_filter(match_template, conditioned, psd=grace_psd)
+#Check properties and Perform the Matched filtering
+# print('match template, conditioned data, grace_psd:', 'sizes:', np.size(match_template), np.size(conditioned), np.size(grace_psd),
+#       'dt:', match_template.delta_t, conditioned.delta_t, grace_psd.delta_t, 
+#       'df:', match_template.delta_f, conditioned.delta_f, grace_psd.delta_f)
 
-# snr1 = snr1.crop(10,10)
+# 6.2 - Perform the matched filter via pycbc's filter module-------------------------------------------------------------------------
+snr1 = matched_filter(match_template, conditioned, psd=grace_psd)
 
-# #Viewing matched filter snr timeseries
-# plt.plot(snr1.sample_times, abs(snr1), label='snr')
-# plt.ylabel('Signal-to-noise')
-# plt.xlabel('Time (s)')
-# plt.grid()
-# plt.legend()
-# plt.show()
+snr1 = snr1.crop(10,10)
+
+#Viewing matched filter snr timeseries
+plt.plot(snr1.sample_times, abs(snr1), label='snr')
+plt.ylabel('Signal-to-noise')
+plt.xlabel('Time (s)')
+plt.grid()
+plt.legend()
+plt.show()
