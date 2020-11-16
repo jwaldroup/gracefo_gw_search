@@ -172,8 +172,8 @@ theta = 0.0
 t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
 
 #truncate such that graph ends by going smoothly to zero
-# hp = zero_finder.last_zero_finder(hp)
-# hp = zero_finder.first_zero_finder(hp)
+hp = zero_finder.last_zero_finder(hp)
+hp = zero_finder.first_zero_finder(hp)
 
 #convert strain arrays to timeseries objects
 hp_ts = types.timeseries.TimeSeries(hp, combined_ts.delta_t) #ensures same delta_t
@@ -272,10 +272,10 @@ random_waveform = np.roll(waveform, random_index)
 ## this section checks the roll position of the waveform when uncommented
 rand_wf_ts = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
 
-plt.figure()
-plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='resized and plotted against time')
-plt.legend()
-plt.show()
+# plt.figure()
+# plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='resized and plotted against time')
+# plt.legend()
+# plt.show()
 
 # plt.figure()
 # plt.plot(rand_wf_ts, label='plotted against array elements')
@@ -338,11 +338,11 @@ match_template.resize(np.size(conditioned))
 
 #match_template = match_template + np.mean(match_template)
 
-plt.figure()
-plt.plot(match_template.sample_times, match_template, label='match template')
-plt.xlabel('time (s)')
-plt.legend()
-plt.show()
+# plt.figure()
+# plt.plot(match_template.sample_times, match_template, label='match template')
+# plt.xlabel('time (s)')
+# plt.legend()
+# plt.show()
 
 #Tutorial says rotate the template to have merger at approx the first bin
 #match_template = match_template.cyclic_time_shift((match_template.start_time - hp_ts.duration + 0.1))
