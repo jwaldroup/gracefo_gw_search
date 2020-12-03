@@ -192,15 +192,14 @@ hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
 # plt.show()
 
 # print('sine mean:', np.mean(sine_signal))
-#-----------------------------------------------------------------------------------------------------------
 
-# #convert strain arrays to timeseries objects
-# hp_ts = types.timeseries.TimeSeries(hp_const, delta_t= combined_ts.delta_t) #ensures same delta_t
-# hc_ts = types.timeseries.TimeSeries(hc_const, delta_t= combined_ts.delta_t)
+# waveform = sine_signal.copy()
+# waveform = types.timeseries.TimeSeries(waveform, delta_t=combined_ts.delta_t)
 
-# print('Generated waveform properties', 'size:', np.size(hp_ts), 
-#        'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
-#        'df:', hp_ts.delta_f)
+#Create template for sine wave test
+# match_template = sine_signal.copy()
+# match_template = types.timeseries.TimeSeries(match_template, delta_t=combined_ts.delta_t)
+
 
 # 4.1 preparing waveform for injection-----------------------------------------------------------------------
 
@@ -209,11 +208,6 @@ hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
 
 # #Copy Waveform Template
 waveform = hp_ts.copy()
-# waveform = sine_signal.copy()
-# waveform = types.timeseries.TimeSeries(waveform, delta_t=combined_ts.delta_t)
-
-#subtract non-zero mean from array
-#waveform = waveform - np.mean(waveform)
 
 #and check
 print("waveform average:", np.mean(waveform))
@@ -262,10 +256,11 @@ plt.show()
 # # #Noise curve unique copy
 combined_tsc = combined_ts.copy()
 
-# #roll the template vector to a random index
+# #roll the template vector to a random index using pycbc cyclic time shift
 #shift_seconds = 10000 #test example for now - should be random second between 0 and combined_tsc.duration-length of waveform
 #random_waveform = waveform.cyclic_time_shift(shift_seconds)#np.roll(waveform, random_index)
 
+#roll template instead with np roll
 random_index = 200000
 random_waveform = np.roll(waveform, random_index)
 
@@ -302,6 +297,7 @@ print('injected ts properties:', 'size:', np.size(injected_ts),
 ## 6 - Matched filter - condition the noise curve and prepare psd -----------------------------------
 
 # 6.1 Prepatory steps and creating the match template-------------------------------------------------
+
 #Highpass the noise curve with injected waveform above 10e-2 Hz
 injected_ts_highpass = highpass(injected_ts, 0.01)
 
@@ -321,22 +317,10 @@ grace_psd = psd.interpolate(combined_fs, conditioned.delta_f)
 
 #create the template for the matched filter 
 match_template = hp_ts.copy()
-match_template = types.timeseries.TimeSeries(match_template, delta_t = 0.1)
-
-#Create template for sine wave test
-# match_template = sine_signal.copy()
-# match_template = types.timeseries.TimeSeries(match_template, delta_t=combined_ts.delta_t)
-
-#subtract non-zero mean
-#match_template = match_template - np.mean(match_template)
-
-#check to see if zero mean
-print("template array average:", np.mean(match_template))
+#match_template = types.timeseries.TimeSeries(match_template, delta_t = 0.1)
 
 #get the match template to the same size as the noise data 
 match_template.resize(np.size(conditioned))
-
-#match_template = match_template + np.mean(match_template)
 
 # plt.figure()
 # plt.plot(match_template.sample_times, match_template, label='match template')
