@@ -52,7 +52,7 @@ theta = 0.0
 m1 = 500.0 #solar mass multiples
 m2 = 500.0
 f_low = 0.1
-r = 100.0 #in parsecs
+r = 10000.0 #in parsecs
 dt = 0.1
 theta = 0.0 
 
@@ -62,9 +62,9 @@ print(hp, np.shape(hp))
 print(hp[-10:])
 
 #truncate such that graph ends by going smoothly to zero
-hp = zero_finder.last_zero_finder(hp)
-hp = zero_finder.first_zero_finder(hp)
-#t_array = t_array[0:np.size(hp)]
+#hp = zero_finder.last_zero_finder(hp)
+#hp = zero_finder.first_zero_finder(hp)
+##t_array = t_array[0:np.size(hp)]
 
 print(hp, np.shape(hp))
 

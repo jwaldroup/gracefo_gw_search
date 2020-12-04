@@ -44,7 +44,7 @@ fileobj.close()
 data_array = np.array(data, dtype='d')
 grace_freqs = data_array[0:,0]
 grace_signal = data_array[0:,1]
-grace_strain = grace_signal / 220.0e3 #converts between m/sqr(Hz) and 1/sqr(Hz)
+grace_asd = grace_signal / 220.0e3 #converts between m/sqr(Hz) and 1/sqr(Hz)
 
 ### 2 - Build Noise Curve Model
 
@@ -143,10 +143,10 @@ print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:',
       combined_ts.delta_f,'f_s:', (1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2.0)
 
 ##Compare merged noise curves with gracefo data
-# plt.loglog(combined_psd.sample_frequencies, np.sqrt(combined_psd), label='test')
+# plt.loglog(combined_psd.sample_frequencies, np.sqrt(combined_psd), label='test asd')
 # #plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
 # #plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
-# plt.loglog(grace_freqs, grace_strain, label='gracefo')
+# plt.loglog(grace_freqs, grace_asd, label='gracefo asd')
 
 # plt.legend()
 # plt.xlabel('frequency (Hz)')
@@ -164,16 +164,20 @@ print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:',
 m1 = 500.0 #solar mass multiples
 m2 = 500.0
 f_low = 0.1
-r = 100.0 #in parsecs
+r = 5000.0 #in parsecs
 dt = combined_ts.delta_t #0.1
 theta = 0.0 
 
 #generate waveform as seen by observer
 t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
 
+
+#note for later - get abs_tol from amplitude of wave at each r value and input automatically into zero_finder functions
+# :)
+
 #truncate such that graph ends by going smoothly to zero
-hp = zero_finder.last_zero_finder(hp)
-hp = zero_finder.first_zero_finder(hp)
+hp = zero_finder.last_zero_finder(hp, abs_tol=1e-14)
+hp = zero_finder.first_zero_finder(hp, abs_tol=1e-15)
 
 #convert strain arrays to timeseries objects
 hp_ts = types.timeseries.TimeSeries(hp, combined_ts.delta_t) #ensures same delta_t
@@ -209,9 +213,6 @@ hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
 # #Copy Waveform Template
 waveform = hp_ts.copy()
 
-#and check
-print("waveform average:", np.mean(waveform))
-
 # #increase length of waveform to match noise curve
 waveform.resize(np.size(combined_ts))
 
@@ -220,10 +221,10 @@ print('Resized Waveform properties:', 'size:', np.size(waveform),
         'df:', waveform.delta_f)
 
 #plot waveform after resizing
-plt.figure()
-plt.plot(waveform.sample_times, waveform, label='resized and plotted against time')
-plt.legend()
-plt.show()
+# plt.figure()
+# plt.plot(waveform.sample_times, waveform, label='resized and plotted against time')
+# plt.legend()
+# plt.show()
 
 # plt.figure()
 # plt.plot(waveform, label='plotted against array elements')
@@ -261,10 +262,10 @@ random_waveform = np.roll(waveform, random_index)
 ## this section checks the roll position of the waveform when uncommented
 rand_wf_ts = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
 
-# plt.figure()
-# plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='resized and plotted against time')
-# plt.legend()
-# plt.show()
+plt.figure()
+plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='resized and plotted against time')
+plt.legend()
+plt.show()
 
 # plt.figure()
 # plt.plot(rand_wf_ts, label='plotted against array elements')
@@ -325,7 +326,7 @@ match_template.resize(np.size(conditioned))
 #Tutorial says rotate the template to have merger at approx the first bin
 #match_template = match_template.cyclic_time_shift((match_template.start_time - hp_ts.duration + 0.1))
 
-# match_roll = np.roll(match_template, - (np.size(hp_ts)-10))
+# match_roll = np.roll(match_template, -np.size(match_template)/4 )
 # match_template = types.timeseries.TimeSeries(match_roll, delta_t=conditioned.delta_t)
 
 # plt.figure()
@@ -346,12 +347,54 @@ snr1 = snr1.crop(10,10)
 
 #Viewing matched filter snr timeseries
 plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
-plt.plot(snr1.sample_times, np.real(snr1), label='real snr')
+#plt.plot(np.real(snr1), label='real snr')
 plt.ylabel('Signal-to-noise')
 plt.xlabel('Time (s)')
 plt.grid()
 plt.legend()
 plt.show()
 
+# plt.figure()
+# plt.plot(np.real(snr1), label='real snr')
+# plt.ylabel('Signal-to-noise')
+# plt.xlabel('Time (s)')
+# plt.grid()
+# plt.legend()
+# plt.show()
+
+# check = np.real(snr1)
+# print(check.get())
+
 # 6.3 - check snr magnitude to see if approximately what is expected--------------------------------------------------------------------
+
+#make unique copies of grace psd frequencyseries and strain timeseries
+h_ts = hp_ts.copy() #h(t) 
+noise_psd = combined_psd.copy() #S_n(f) in 1/Hz
+
+#extend length of template to match noise timeseries length
+h_ts.resize(np.size(combined_ts))
+
+#take psd of strain timeseries
+h_fs = welch_function.pycbc_welch(combined_ts, 1)
+
+#trial of psd via np.fft instead
+# h_fs = np.fft.fft(h_ts)
+# h_fs = types.frequencyseries.FrequencySeries(h_fs, delta_f=noise_psd.delta_f)
+
+#equate df of both frequencyseries
+print('df h_fs:', h_fs.delta_f, 'df noise:', noise_psd.delta_f)
+h_fs = psd.interpolate(h_fs, noise_psd.delta_f) #interpolate the larger df of the two to match
+print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
+
+#calculate snr estimate
+psd_ratio = (4.0 * (np.abs(h_fs)**2.0) ) / (noise_psd) #form "integrand" ratio
+snr_squared = psd_ratio.sum() #take the discrete sum 
+
+
+snr_estimate = np.sqrt(snr_squared)
+print("snr estimate", snr_estimate, np.iscomplex(snr_estimate))
+
+#calculate difference between peak value of actual matched filter snr and estimate
+theoretical_difference = (max(np.abs(snr1))) - snr_estimate
+print("Theoretical and actual snr difference:", theoretical_difference)
 
