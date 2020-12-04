@@ -134,16 +134,16 @@ combined = np.array(filtered1) + np.array(filtered2c)
 combined_ts = types.timeseries.TimeSeries(combined, filtered1.delta_t) #ensures same delta_t
 
 #welch's psd
-combined_fs = welch_function.pycbc_welch(combined_ts, 2)
+combined_psd = welch_function.pycbc_welch(combined_ts, 2)
 
 #display some important parameters
-#print('Combined psd FrequencySeries:','size:', np.size(combined_fs), 'df:', combined_fs.delta_f)
+#print('Combined psd FrequencySeries:','size:', np.size(combined_psd), 'df:', combined_psd.delta_f)
 print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:', 
       combined_ts.duration, 'dt:', combined_ts.delta_t,'df:', 
       combined_ts.delta_f,'f_s:', (1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2.0)
 
 ##Compare merged noise curves with gracefo data
-# plt.loglog(combined_fs.sample_frequencies, np.sqrt(combined_fs), label='test')
+# plt.loglog(combined_psd.sample_frequencies, np.sqrt(combined_psd), label='test')
 # #plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
 # #plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
 # plt.loglog(grace_freqs, grace_strain, label='gracefo')
@@ -245,12 +245,6 @@ plt.show()
 #       'duration:', waveform.duration, 'dt:', waveform.delta_t, 
 #       'df:', waveform.delta_f )
 
-# plt.figure()
-# plt.plot(waveform.sample_times, waveform, label='waveform resampled')
-# #plt.xlim(10000,12000)
-# plt.legend()
-# plt.show()
-
 # ## 5 - Injection ----------------------------------------------------------------------------------------------------
 
 # # #Noise curve unique copy
@@ -313,7 +307,7 @@ conditioned = injected_ts_highpass.crop(2,2)
 # plt.show()
 
 #make sure psd is of same delta_f as the noise data timeseries
-grace_psd = psd.interpolate(combined_fs, conditioned.delta_f)
+grace_psd = psd.interpolate(combined_psd, conditioned.delta_f)
 
 #create the template for the matched filter 
 match_template = hp_ts.copy()
@@ -351,9 +345,13 @@ snr1 = matched_filter(match_template, conditioned, psd=grace_psd)
 snr1 = snr1.crop(10,10)
 
 #Viewing matched filter snr timeseries
-plt.plot(snr1.sample_times, abs(snr1), label='snr')
+plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
+plt.plot(snr1.sample_times, np.real(snr1), label='real snr')
 plt.ylabel('Signal-to-noise')
 plt.xlabel('Time (s)')
 plt.grid()
 plt.legend()
 plt.show()
+
+# 6.3 - check snr magnitude to see if approximately what is expected--------------------------------------------------------------------
+
