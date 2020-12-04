@@ -260,12 +260,12 @@ random_index = 200000
 random_waveform = np.roll(waveform, random_index)
 
 ## this section checks the roll position of the waveform when uncommented
-rand_wf_ts = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
+# rand_wf_ts = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
 
-plt.figure()
-plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='resized and plotted against time')
-plt.legend()
-plt.show()
+# plt.figure()
+# plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='resized and plotted against time')
+# plt.legend()
+# plt.show()
 
 # plt.figure()
 # plt.plot(rand_wf_ts, label='plotted against array elements')
@@ -375,7 +375,12 @@ noise_psd = combined_psd.copy() #S_n(f) in 1/Hz
 h_ts.resize(np.size(combined_ts))
 
 #take psd of strain timeseries
-h_fs = welch_function.pycbc_welch(combined_ts, 1)
+h_fs = welch_function.pycbc_welch(h_ts, 1)
+
+plt.figure()
+plt.loglog(h_fs.sample_frequencies, np.abs(h_fs))
+plt.grid()
+plt.show()
 
 #trial of psd via np.fft instead
 # h_fs = np.fft.fft(h_ts)
@@ -387,7 +392,8 @@ h_fs = psd.interpolate(h_fs, noise_psd.delta_f) #interpolate the larger df of th
 print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
 
 #calculate snr estimate
-psd_ratio = (4.0 * (np.abs(h_fs)**2.0) ) / (noise_psd) #form "integrand" ratio
+#need to also multiply by the df before summing
+psd_ratio = (noise_psd.delta_f * 4.0 * (np.abs(h_fs)) ) / np.abs(noise_psd) #form "integrand" ratio
 snr_squared = psd_ratio.sum() #take the discrete sum 
 
 
