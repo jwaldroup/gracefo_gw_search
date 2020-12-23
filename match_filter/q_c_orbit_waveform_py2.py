@@ -99,7 +99,7 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     h_plus = A*((5.0/(c*tau))**(1.0/4.0)) * (1+(np.cos(theta)**2.0)) * 0.5 * np.cos(Phi)
     h_cross = A*((5.0/(c*tau))**(1.0/4.0)) * (np.cos(theta)) * np.sin(Phi)
     
-    print('Strain waveform observer time parameters', 'time array size:', np.size(t), 'duration (s):', time_until_coalescence, '(min):', time_until_coalescence/60,
-          'df:', 1.0/time_until_coalescence)
+    #print('Strain waveform observer time parameters', 'time array size:', np.size(t), 'duration (s):', time_until_coalescence, '(min):', time_until_coalescence/60,
+    #      'df:', 1.0/time_until_coalescence)
     
     return t, h_plus, h_cross

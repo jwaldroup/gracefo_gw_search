@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Dec 23 01:22:43 2020
+
+@author: john
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import q_c_orbit_waveform_py2 as q_c_py2
+
+from pycbc import types
+from pycbc import psd
+import pycbc_welch_function as welch_function
+
+def snr_distance_plotter(mass1, mass2, f_lower_bound, dt, theta, distance_array, noise_psd, lgd_label='legend key'):
+    
+    snr_values = []
+    
+    for r in distance_array:
+        times, plus_strain, cross_strain = q_c_py2.strain_waveform_observer_time(mass1, mass2, 
+                                                                                 f_lower_bound, dt, 
+                                                                                 r, theta)
+        
+        h_ts = types.timeseries.TimeSeries(plus_strain, dt)
+        h_fs = welch_function.pycbc_welch(h_ts, 1)
+        h_fs = psd.interpolate(h_fs, noise_psd.delta_f)
+        
+        signal_psd = np.abs(h_fs)
+        psd_ratio = (4.0 * signal_psd * noise_psd.delta_f) / noise_psd
+        snr_squared = psd_ratio.sum()
+        
+        snr_estimate = np.sqrt(snr_squared)
+        snr_values.append(snr_estimate)
+        
+    plt.plot(distance_array, snr_values, label=lgd_label)
+    plt.grid()
+    plt.xlabel('distance in pc')
+    plt.ylabel('snr')
+    plt.legend(loc="upper right")
+    plt.show()
+    
+    return snr_values

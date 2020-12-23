@@ -26,7 +26,7 @@ import zero_finder
 # 3. Merge the noise curves
 # 4. Generate waveform template from approximant
 # 5. Inject one polarizations strain from template into noise curve
-# 6. Perform Match Filter
+# 6. Perform Match Filter/test snr output
 
 ## 1 - Read in Grace-FO data to model------------------------------------------
 
@@ -140,9 +140,9 @@ combined_psd = welch_function.pycbc_welch(combined_ts, 2)
 #print('Combined psd FrequencySeries:','size:', np.size(combined_psd), 'df:', combined_psd.delta_f)
 print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:', 
       combined_ts.duration, 'dt:', combined_ts.delta_t,'df:', 
-      combined_ts.delta_f,'f_s:', (1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2.0)
+      combined_ts.delta_f,'f_s:',) #(1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2.0)
 
-##Compare merged noise curves with gracefo data
+# #Compare merged noise curves with gracefo data
 # plt.loglog(combined_psd.sample_frequencies, np.sqrt(combined_psd), label='test asd')
 # #plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
 # #plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
@@ -164,7 +164,7 @@ print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:',
 m1 = 500.0 #solar mass multiples
 m2 = 500.0
 f_low = 0.1
-r = 5000.0 #in parsecs
+r = 1000.0 #in parsecs
 dt = combined_ts.delta_t #0.1
 theta = 0.0 
 
@@ -182,6 +182,10 @@ hp = zero_finder.first_zero_finder(hp, abs_tol=1e-15)
 #convert strain arrays to timeseries objects
 hp_ts = types.timeseries.TimeSeries(hp, combined_ts.delta_t) #ensures same delta_t
 hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
+
+print('Generated Waveform properties:', 'size:', np.size(hp_ts), 
+         'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
+         'df:', hp_ts.delta_f)
 
 
 #Testing matched filter with zero mean sinusoid waveform------------------------------------------------
@@ -216,9 +220,9 @@ waveform = hp_ts.copy()
 # #increase length of waveform to match noise curve
 waveform.resize(np.size(combined_ts))
 
-print('Resized Waveform properties:', 'size:', np.size(waveform), 
-        'duration:', waveform.duration, 'dt:', waveform.delta_t, 
-        'df:', waveform.delta_f)
+# print('Resized Waveform properties:', 'size:', np.size(waveform), 
+#         'duration:', waveform.duration, 'dt:', waveform.delta_t, 
+#         'df:', waveform.delta_f)
 
 #plot waveform after resizing
 # plt.figure()
@@ -345,14 +349,14 @@ snr1 = matched_filter(match_template, conditioned, psd=grace_psd)
 
 snr1 = snr1.crop(10,10)
 
-#Viewing matched filter snr timeseries
-plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
-#plt.plot(np.real(snr1), label='real snr')
-plt.ylabel('Signal-to-noise')
-plt.xlabel('Time (s)')
-plt.grid()
-plt.legend()
-plt.show()
+# #Viewing matched filter snr timeseries
+# plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
+# #plt.plot(np.real(snr1), label='real snr')
+# plt.ylabel('Signal-to-noise')
+# plt.xlabel('Time (s)')
+# plt.grid()
+# plt.legend()
+# plt.show()
 
 # plt.figure()
 # plt.plot(np.real(snr1), label='real snr')
@@ -371,36 +375,59 @@ plt.show()
 h_ts = hp_ts.copy() #h(t) 
 noise_psd = combined_psd.copy() #S_n(f) in 1/Hz
 
-#extend length of template to match noise timeseries length
-h_ts.resize(np.size(combined_ts))
-
 #take psd of strain timeseries
 h_fs = welch_function.pycbc_welch(h_ts, 1)
 
+# 6.3.1 - Adjust h_fs for frequency domain plotting check--------------------------------------------------------------------------
+#already checked that noise psd is consistent with what's expected
+
+# plt.figure()
+# plt.plot(h_ts.sample_times, h_ts, label ='td waveform ')
+# plt.legend()
+# plt.grid()
+
 plt.figure()
-plt.loglog(h_fs.sample_frequencies, np.abs(h_fs))
+#plt.plot(h_fs.sample_frequencies, np.abs(h_fs) )
+plt.loglog(h_fs.sample_frequencies, np.abs(h_fs), label='fd waveform')
 plt.grid()
+plt.legend()
 plt.show()
 
-#trial of psd via np.fft instead
-# h_fs = np.fft.fft(h_ts)
-# h_fs = types.frequencyseries.FrequencySeries(h_fs, delta_f=noise_psd.delta_f)
+# 6.3.2 snr estimate calculation----------------------------------------------------------------------------------------------------------------------------------
 
-#equate df of both frequencyseries
+#equate df of both frequencyseries < - Note for future generalization - rewrite as if else statement
+print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
 print('df h_fs:', h_fs.delta_f, 'df noise:', noise_psd.delta_f)
 h_fs = psd.interpolate(h_fs, noise_psd.delta_f) #interpolate the larger df of the two to match
 print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
 
 #calculate snr estimate
 #need to also multiply by the df before summing
-psd_ratio = (noise_psd.delta_f * 4.0 * (np.abs(h_fs)) ) / np.abs(noise_psd) #form "integrand" ratio
+signal_psd = ((np.abs(h_fs)))
+numerator =  4.0 * signal_psd * noise_psd.delta_f
+
+print(numerator.dtype, noise_psd.dtype)
+#print(numerator)
+psd_ratio = numerator / ((noise_psd)) #form "integrand" ratio
+print(psd_ratio)
 snr_squared = psd_ratio.sum() #take the discrete sum 
 
 
 snr_estimate = np.sqrt(snr_squared)
-print("snr estimate", snr_estimate, np.iscomplex(snr_estimate))
+print("snr estimate", snr_estimate, "snr squared:", snr_squared, "is complex?", np.iscomplex(snr_estimate))
 
 #calculate difference between peak value of actual matched filter snr and estimate
 theoretical_difference = (max(np.abs(snr1))) - snr_estimate
 print("Theoretical and actual snr difference:", theoretical_difference)
+ 
+#6.3.2.1 check snr estimate's change with distance
 
+import snr_distance_comparison as snr_dc
+
+distances = np.arange(50, 5000, 50)
+snr_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='no injection')
+
+inject_c = injected_ts.copy()
+injected_fs = welch_function.pycbc_welch(inject_c, 1)
+
+snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='injection present')
