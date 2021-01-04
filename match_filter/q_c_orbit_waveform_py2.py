@@ -95,7 +95,7 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     #3 - find Phi from equation 4.30
     Phi = -2.0 * ( ( (5.0*G*M_c)/(c**3.0) )**(-5.0/8.0) ) * (tau**(5.0/8.0) )
     
-    #4 - calculate plus and cross polarizations from equations 4.29
+    #4 - calculate plus and cross polarizations from equations 4.31 and 4.32
     h_plus = A*((5.0/(c*tau))**(1.0/4.0)) * (1+(np.cos(theta)**2.0)) * 0.5 * np.cos(Phi)
     h_cross = A*((5.0/(c*tau))**(1.0/4.0)) * (np.cos(theta)) * np.sin(Phi)
     
