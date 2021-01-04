@@ -133,9 +133,6 @@ filtered2c.append_zeros((np.size(filtered1)-np.size(filtered2)))
 combined = np.array(filtered1) + np.array(filtered2c)
 combined_ts = types.timeseries.TimeSeries(combined, filtered1.delta_t) #ensures same delta_t
 
-#welch's psd
-combined_psd = welch_function.pycbc_welch(combined_ts, 2)
-
 #display some important parameters
 #print('Combined psd FrequencySeries:','size:', np.size(combined_psd), 'df:', combined_psd.delta_f)
 print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:', 
@@ -311,7 +308,9 @@ conditioned = injected_ts_highpass.crop(2,2)
 # plt.legend()
 # plt.show()
 
-#make sure psd is of same delta_f as the noise data timeseries
+#make sure noise psd is of same delta_f as the noise data timeseries
+#combined_psd = welch_function.pycbc_welch(combined_ts, 2) #with no injection
+combined_psd = welch_function.pycbc_welch(injected_ts, 2) #with injection
 grace_psd = psd.interpolate(combined_psd, conditioned.delta_f)
 
 #create the template for the matched filter 
@@ -415,7 +414,7 @@ print("snr estimate via welch", snr_estimate_welch, "snr squared:", snr_squared_
 # print("Theoretical and actual snr difference:", theoretical_difference)
  
 #calculate snr estimate using numpy fft
-
+#raw_fft_h_ts = np.fft.fft(h_ts)
 
 
 
@@ -428,9 +427,9 @@ print("snr estimate via welch", snr_estimate_welch, "snr squared:", snr_squared_
 import snr_distance_comparison as snr_dc
 
 distances = np.arange(50, 5000, 50)
-snr_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='no injection')
+snr_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='no injection of waveform in noise data')
 
 inject_c = injected_ts.copy()
 injected_fs = welch_function.pycbc_welch(inject_c, 1)
 
-snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='injection present')
+snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='injection present in noise data')
