@@ -222,10 +222,10 @@ waveform.resize(np.size(combined_ts))
 #         'df:', waveform.delta_f)
 
 #plot waveform after resizing
-plt.figure()
-plt.plot(waveform.sample_times, waveform, label='resized and plotted against time')
-plt.legend()
-plt.show()
+# plt.figure()
+# plt.plot(waveform.sample_times, waveform, label='resized and plotted against time')
+# plt.legend()
+# plt.show()
 
 # plt.figure()
 # plt.plot(waveform, label='plotted against array elements')
@@ -309,8 +309,8 @@ conditioned = injected_ts_highpass.crop(2,2)
 # plt.show()
 
 #make sure noise psd is of same delta_f as the noise data timeseries
-#combined_psd = welch_function.pycbc_welch(combined_ts, 2) #with no injection
-combined_psd = welch_function.pycbc_welch(injected_ts, 2) #with injection
+#combined_psd = welch_function.pycbc_welch(combined_ts, 1) #with no injection
+combined_psd = welch_function.pycbc_welch(injected_ts, 1) #with injection
 grace_psd = psd.interpolate(combined_psd, conditioned.delta_f)
 
 #create the template for the matched filter 
@@ -348,7 +348,8 @@ snr1 = matched_filter(match_template, conditioned, psd=grace_psd)
 
 snr1 = snr1.crop(10,10)
 
-# #Viewing matched filter snr timeseries
+#Viewing matched filter snr timeseries
+# plt.figure()
 # plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
 # #plt.plot(np.real(snr1), label='real snr')
 # plt.ylabel('Signal-to-noise')
@@ -385,51 +386,68 @@ h_fs = welch_function.pycbc_welch(h_ts, 1)
 # plt.legend()
 # plt.grid()
 
-# plt.figure()
-# #plt.plot(h_fs.sample_frequencies, np.abs(h_fs) )
-# plt.loglog(h_fs.sample_frequencies, np.abs(h_fs), label='fd waveform')
-# plt.grid()
-# plt.legend()
-# plt.show()
+plt.figure()
+#plt.plot(h_fs.sample_frequencies, np.abs(h_fs) )
+plt.loglog(h_fs.sample_frequencies, np.abs(h_fs), label='fd waveform')
+plt.grid()
+plt.legend()
+#plt.show()
 
 # 6.3.2 snr estimate calculation----------------------------------------------------------------------------------------------------------------------------------
 
 #equate df of both frequencyseries < - Note for future generalization - rewrite as if else statement
-print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
-print('df h_fs:', h_fs.delta_f, 'df noise:', noise_psd.delta_f)
+#print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
+#print('df h_fs:', h_fs.delta_f, 'df noise:', noise_psd.delta_f)
 h_fs = psd.interpolate(h_fs, noise_psd.delta_f) #interpolate the larger df of the two to match
-print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
+#print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
 
-#calculate snr estimate using pycbc welch
+#calculate snr estimate using pycbc welch (original)
 #need to also multiply by the df before summing
-signal_psd = np.abs(h_fs)
-psd_ratio = (4.0 * signal_psd * noise_psd.delta_f * 2.0) / noise_psd
+# signal_psd = np.abs(h_fs)
+# psd_ratio = (4.0 * signal_psd * noise_psd.delta_f * 2.0) / noise_psd
+# snr_squared_welch = psd_ratio.sum()
+# snr_estimate_welch = np.sqrt(snr_squared_welch)
+
+#same as code block directly above but altered by what I think the correct equation with correct units should be
+signal_psd = h_fs
+psd_ratio = (4.0 * signal_psd) / (noise_psd )#* noise_psd.delta_f)
+#print("is psd_ratio complex?", np.iscomplex(psd_ratio))
 snr_squared_welch = psd_ratio.sum()
 snr_estimate_welch = np.sqrt(snr_squared_welch)
 
-print("snr estimate via welch", snr_estimate_welch, "snr squared:", snr_squared_welch, "is complex?", np.iscomplex(snr_estimate_welch))
+print("snr estimate via welch", snr_estimate_welch, "is complex?", np.iscomplex(snr_estimate_welch))
 
 # #calculate difference between peak value of actual matched filter snr and estimate
 # theoretical_difference = (max(np.abs(snr1))) - snr_estimate_welch
 # print("Theoretical and actual snr difference:", theoretical_difference)
  
 #calculate snr estimate using numpy fft
-#raw_fft_h_ts = np.fft.fft(h_ts)
+freqs = np.fft.fftfreq(np.size(h_ts))
+mask = freqs > 0
+raw_fft_h_ts = np.fft.fft(h_ts)
+psd_of_h_ts = 2.0 * np.abs(raw_fft_h_ts / float(np.size(h_ts)) ) ** 2.0
 
+#plt.figure()
+plt.loglog(freqs[mask], psd_of_h_ts[mask], label='fft waveform')
+plt.legend()
+plt.xlabel('freqs')
+plt.show()
 
+#turn psd to frequencyseries with df of fftfreqs
+#interpolate psd to match noise_psd.delta_f
+#calculate snr 
+#revise to include windowing
 
-
-
-#print("snr estimate via fft", snr_estimate_fft, "snr squared:", snr_squared_fft, "is complex?", np.iscomplex(snr_estimate_fft))
+#print("snr estimate via fft", snr_estimate_fft, "is complex?", np.iscomplex(snr_estimate_fft))
 
 
 #6.3.2.1 check snr estimate's change with distance
-import snr_distance_comparison as snr_dc
+# import snr_distance_comparison as snr_dc
 
-distances = np.arange(50, 5000, 50)
-snr_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='no injection of waveform in noise data')
+# distances = np.arange(50, 5000, 50)
+# snr_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='no injection of waveform in noise data')
 
-inject_c = injected_ts.copy()
-injected_fs = welch_function.pycbc_welch(inject_c, 1)
+# inject_c = injected_ts.copy()
+# injected_fs = welch_function.pycbc_welch(inject_c, 1)
 
-snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='injection present in noise data')
+# snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='injection present in noise data')
