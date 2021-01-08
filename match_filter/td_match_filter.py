@@ -135,9 +135,9 @@ combined_ts = types.timeseries.TimeSeries(combined, filtered1.delta_t) #ensures 
 
 #display some important parameters
 #print('Combined psd FrequencySeries:','size:', np.size(combined_psd), 'df:', combined_psd.delta_f)
-print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:', 
-      combined_ts.duration, 'dt:', combined_ts.delta_t,'df:', 
-      combined_ts.delta_f,'f_s:',) #(1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2.0)
+# print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:', 
+#       combined_ts.duration, 'dt:', combined_ts.delta_t,'df:', 
+#       combined_ts.delta_f,'f_s:',) #(1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2.0)
 
 # #Compare merged noise curves with gracefo data
 # plt.loglog(combined_psd.sample_frequencies, np.sqrt(combined_psd), label='test asd')
@@ -180,9 +180,9 @@ hp = zero_finder.first_zero_finder(hp, abs_tol=1e-15)
 hp_ts = types.timeseries.TimeSeries(hp, combined_ts.delta_t) #ensures same delta_t
 hc_ts = types.timeseries.TimeSeries(hc, combined_ts.delta_t)
 
-print('Generated Waveform properties:', 'size:', np.size(hp_ts), 
-         'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
-         'df:', hp_ts.delta_f)
+# print('Generated Waveform properties:', 'size:', np.size(hp_ts), 
+#          'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
+#          'df:', hp_ts.delta_f)
 
 
 #Testing matched filter with zero mean sinusoid waveform------------------------------------------------
@@ -277,9 +277,9 @@ random_waveform = np.roll(waveform, random_index)
 injected_array = np.array(combined_tsc) + np.array(random_waveform)
 injected_ts = types.timeseries.TimeSeries(injected_array, delta_t=combined_tsc.delta_t)
 
-print('injected ts properties:', 'size:', np.size(injected_ts), 
-        'duration:', injected_ts.duration, 'dt:', injected_ts.delta_t, 
-        'df:', injected_ts.delta_f)
+# print('injected ts properties:', 'size:', np.size(injected_ts), 
+#         'duration:', injected_ts.duration, 'dt:', injected_ts.delta_t, 
+#         'df:', injected_ts.delta_f)
 
 # #display for visual evaluation
 # plt.figure()
@@ -410,22 +410,22 @@ h_fs = psd.interpolate(h_fs, noise_psd.delta_f) #interpolate the larger df of th
 
 #same as code block directly above but altered by what I think the correct equation with correct units should be
 # signal_psd = h_fs
-# psd_ratio_welch = (4.0 * signal_psd * noise_psd.delta_f) / (noise_psd)
-# #print("is psd_ratio complex?", np.iscomplex(psd_ratio_welch))
+# psd_ratio_welch = (4.0 * signal_psd ) / (noise_psd) #* noise_psd.delta_f)
 # snr_squared_welch = psd_ratio_welch.sum()
 # snr_estimate_welch = np.sqrt(snr_squared_welch)
 
-# print("snr estimate via welch", snr_estimate_welch, "is complex?", np.iscomplex(snr_estimate_welch))
+signal_psd = h_fs
+psd_ratio_welch = (4.0 * signal_psd  ) / (noise_psd) #* noise_psd.delta_f)
+snr_squared_welch = psd_ratio_welch.sum()
+snr_estimate_welch = np.sqrt(snr_squared_welch)
 
-# #calculate difference between peak value of actual matched filter snr and estimate
-# theoretical_difference = (max(np.abs(snr1))) - snr_estimate_welch
-# print("Theoretical and actual snr difference:", theoretical_difference)
- 
+print("snr estimate via welch", snr_estimate_welch, "is complex?", np.iscomplex(snr_estimate_welch))
+
 #calculate snr estimate using numpy fft
 freqs = np.fft.fftfreq(np.size(h_ts))
 mask = freqs > 0
 raw_fft_h_ts = np.fft.fft(h_ts)
-psd_of_h_ts = 4.0 * np.abs(raw_fft_h_ts / float(np.size(h_ts)) ) ** 2.0
+psd_of_h_ts = 2.0 * np.abs(raw_fft_h_ts / float(np.size(h_ts)) ) ** 2.0
 
 # #plt.figure()
 # # plt.loglog(freqs[mask], psd_of_h_ts[mask], label='fft waveform')
@@ -435,16 +435,13 @@ psd_of_h_ts = 4.0 * np.abs(raw_fft_h_ts / float(np.size(h_ts)) ) ** 2.0
 
 #turn psd to frequencyseries with df of fftfreqs
 fft_psd_fs = types.frequencyseries.FrequencySeries(psd_of_h_ts[mask], delta_f=(1.0/h_ts.duration))
-#print(fft_psd_fs.delta_f)
 
 # #interpolate psd to match noise_psd.delta_f
-#print("fft psd size", np.size(fft_psd_fs), "noise psd size", np.size(noise_psd))
-#print("fft df", fft_psd_fs.delta_f, 'df noise:', noise_psd.delta_f) #to check the df of each
 fft_psd_fs = psd.interpolate(fft_psd_fs, noise_psd.delta_f)
 
 #calculate snr
-#print("fft psd size", np.size(fft_psd_fs), "noise psd size", np.size(noise_psd))
-psd_ratio_fft = (4.0 * fft_psd_fs ) / (noise_psd[:-1])
+psd_ratio_fft = (4.0 * fft_psd_fs) / (noise_psd[:-1])
+
 #print("is psd_ratio complex?", np.iscomplex(psd_ratio_fft))
 snr_squared_fft = psd_ratio_fft.sum()
 snr_estimate_fft = np.sqrt(snr_squared_fft)
@@ -465,4 +462,4 @@ distances = np.arange(50, 5000, 50)
 
 # snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='injection present in noise data')
 
-snr_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='fft snr distance comparison')
+snr_outputs = snr_dc.snr_distance_plotter_wf_self_generating(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='fft snr distance comparison')

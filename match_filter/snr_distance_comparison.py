@@ -13,7 +13,7 @@ from pycbc import types
 from pycbc import psd
 import pycbc_welch_function as welch_function
 
-def snr_distance_plotter(mass1, mass2, f_lower_bound, dt, theta, distance_array, noise_psd, lgd_label='legend key'):
+def snr_distance_plotter_wf_self_generating(mass1, mass2, f_lower_bound, dt, theta, distance_array, noise_psd, lgd_label='legend key'):
     
     snr_values = []
     
@@ -32,7 +32,7 @@ def snr_distance_plotter(mass1, mass2, f_lower_bound, dt, theta, distance_array,
         freqs = np.fft.fftfreq(np.size(h_ts))
         mask = freqs > 0
         raw_fft_h_ts = np.fft.fft(h_ts)
-        h_fs = 4.0 * np.abs(raw_fft_h_ts / float(np.size(h_ts)) ) ** 2.0
+        h_fs = 2.0  * np.abs(raw_fft_h_ts / float(np.size(h_ts)) ) ** 2.0
         h_fs = types.frequencyseries.FrequencySeries(h_fs[mask], delta_f=(1.0/h_ts.duration))
         h_fs = psd.interpolate(h_fs, noise_psd.delta_f)
         
@@ -46,6 +46,7 @@ def snr_distance_plotter(mass1, mass2, f_lower_bound, dt, theta, distance_array,
         
         #second way
         signal_psd = h_fs
+        #psd_ratio = (4.0 * signal_psd* noise_psd.delta_f) / (noise_psd[:-1])
         psd_ratio = (4.0 * signal_psd) / (noise_psd[:-1])
         snr_squared = (psd_ratio).sum()
         #snr_squared = (psd_ratio * noise_psd.delta_f).sum()
@@ -60,3 +61,5 @@ def snr_distance_plotter(mass1, mass2, f_lower_bound, dt, theta, distance_array,
     plt.show()
     
     return snr_values
+
+#Note to self, build function that takes in the waveform as an input parameter instead of generating it
