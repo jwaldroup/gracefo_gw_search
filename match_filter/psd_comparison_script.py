@@ -47,7 +47,7 @@ fft_psd = 2.0 * np.abs(fft_vals / n) ** 2.0
 #calculate the welch PSD
 dt = float(Lx)/float(n)
 y_ts = types.timeseries.TimeSeries(y, delta_t=dt)
-welch_psd = welch_function.pycbc_welch(y_ts, 25)
+welch_psd = welch_function.pycbc_welch(y_ts, 3)
 
 plt.plot(freqs[mask], fft_psd[mask], label='fft')
 plt.plot(welch_psd.sample_frequencies, welch_psd, label='welch')

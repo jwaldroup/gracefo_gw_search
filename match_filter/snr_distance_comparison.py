@@ -47,7 +47,7 @@ def snr_distance_plotter_wf_self_generating(mass1, mass2, f_lower_bound, dt, the
         #second way
         signal_psd = h_fs
         #psd_ratio = (4.0 * signal_psd* noise_psd.delta_f) / (noise_psd[:-1])
-        psd_ratio = (4.0 * signal_psd) / (noise_psd[:-1])
+        psd_ratio = (4.0 * signal_psd) / noise_psd #/(noise_psd[:-2])
         snr_squared = (psd_ratio).sum()
         #snr_squared = (psd_ratio * noise_psd.delta_f).sum()
         snr_estimate = np.sqrt(snr_squared)

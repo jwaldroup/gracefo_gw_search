@@ -310,7 +310,7 @@ conditioned = injected_ts_highpass.crop(2,2)
 
 #make sure noise psd is of same delta_f as the noise data timeseries
 #combined_psd = welch_function.pycbc_welch(combined_ts, 1) #with no injection
-combined_psd = welch_function.pycbc_welch(injected_ts, 1) #with injection
+combined_psd = welch_function.pycbc_welch(injected_ts, 3) #with injection
 grace_psd = psd.interpolate(combined_psd, conditioned.delta_f)
 
 #create the template for the matched filter 
@@ -376,7 +376,7 @@ h_ts = hp_ts.copy() #h(t)
 noise_psd = combined_psd.copy() #S_n(f) in 1/Hz
 
 #take psd of strain timeseries
-h_fs = welch_function.pycbc_welch(h_ts, 1)
+h_fs = welch_function.pycbc_welch(h_ts, 3)
 
 # 6.3.1 - Adjust h_fs for frequency domain plotting check--------------------------------------------------------------------------
 #already checked that noise psd is consistent with what's expected
@@ -415,11 +415,11 @@ h_fs = psd.interpolate(h_fs, noise_psd.delta_f) #interpolate the larger df of th
 # snr_estimate_welch = np.sqrt(snr_squared_welch)
 
 signal_psd = h_fs
-psd_ratio_welch = (4.0 * signal_psd  ) / (noise_psd) #* noise_psd.delta_f)
+psd_ratio_welch = (4.0 * signal_psd  ) / (noise_psd[:-2]) #* noise_psd.delta_f)
 snr_squared_welch = psd_ratio_welch.sum()
 snr_estimate_welch = np.sqrt(snr_squared_welch)
 
-print("snr estimate via welch", snr_estimate_welch, "is complex?", np.iscomplex(snr_estimate_welch))
+print("snr estimate via welch", snr_estimate_welch) #, "is complex?", np.iscomplex(snr_estimate_welch))
 
 #calculate snr estimate using numpy fft
 freqs = np.fft.fftfreq(np.size(h_ts))
@@ -437,19 +437,20 @@ psd_of_h_ts = 2.0 * np.abs(raw_fft_h_ts / float(np.size(h_ts)) ) ** 2.0
 fft_psd_fs = types.frequencyseries.FrequencySeries(psd_of_h_ts[mask], delta_f=(1.0/h_ts.duration))
 
 # #interpolate psd to match noise_psd.delta_f
+#print("vector sizes:" , np.size(fft_psd_fs), np.size(noise_psd))
 fft_psd_fs = psd.interpolate(fft_psd_fs, noise_psd.delta_f)
+#print("vector sizes:" , np.size(fft_psd_fs), np.size(noise_psd))
 
 #calculate snr
-psd_ratio_fft = (4.0 * fft_psd_fs) / (noise_psd[:-1])
+psd_ratio_fft = (4.0 * fft_psd_fs) / (noise_psd) #/ (noise_psd[:-1])
 
 #print("is psd_ratio complex?", np.iscomplex(psd_ratio_fft))
 snr_squared_fft = psd_ratio_fft.sum()
 snr_estimate_fft = np.sqrt(snr_squared_fft)
  
-print("snr estimate via fft", snr_estimate_fft, "is complex?", np.iscomplex(snr_estimate_fft))
+print("snr estimate via fft", snr_estimate_fft) #, "is complex?", np.iscomplex(snr_estimate_fft))
 
 #revise to include windowing
-
 
 #6.3.2.1 check snr estimate's change with distance
 import snr_distance_comparison as snr_dc
