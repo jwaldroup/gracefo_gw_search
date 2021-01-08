@@ -458,9 +458,9 @@ import snr_distance_comparison as snr_dc
 distances = np.arange(50, 5000, 50)
 # snr_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='no injection of waveform in noise data')
 
-# inject_c = injected_ts.copy()
-# injected_fs = welch_function.pycbc_welch(inject_c, 1)
+inject_c = injected_ts.copy()
+injected_fs = welch_function.pycbc_welch(inject_c, 3)
 
-# snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='injection present in noise data')
+snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter_wf_self_generating(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='welch snr distance comparison')
 
 snr_outputs = snr_dc.snr_distance_plotter_wf_self_generating(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='fft snr distance comparison')
