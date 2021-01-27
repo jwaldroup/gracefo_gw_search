@@ -103,3 +103,18 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     #      'df:', 1.0/time_until_coalescence)
     
     return t, h_plus, h_cross
+
+def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
+    
+    #define some important quantities
+    M_c = chirp_mass(m1,m2)
+    m_tot = float(m1 + m2)
+    G = 6.67*10e-11
+    c = 3.0*1e8
+    distance = r*(3.0857e16)
+    
+    #define some scaling factors for later equation simplification
+    A = (1.0/distance)*((G*M_c) / (c**2.0))**(5.0/4.0)
+    B = (30.0 * (6.0 **(1.0/2.0)) / 256.0)
+    
+    
