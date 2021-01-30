@@ -23,15 +23,17 @@ theta = 0.0
 #generate waveform as seen by observer
 #wf_t_array, hp, hc = q_c_apx.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
 wf_t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
+ouput = q_c_py2.obs_time_inspiral_strain(m1, m2, f_low, dt, r, theta)
 
+print(ouput)
 #t_array, hp2, hc2 = q_c_py2.strain_waveform_in_retarded_time(m1, m2, f_low, dt, r, theta)
 
-plt.plot(wf_t_array, hp, label='generated waveform')
-plt.xlabel('time (s)')
-plt.ylabel('amplitude strain')
-#plt.xlim(11900,12000)
-plt.legend()
-plt.show()
+# plt.plot(wf_t_array, hp, label='generated waveform')
+# plt.xlabel('time (s)')
+# plt.ylabel('amplitude strain')
+# #plt.xlim(11900,12000)
+# plt.legend()
+# plt.show()
 
 # f_gw = 0.1
 # duration = int(5 * 1.0/f_gw)

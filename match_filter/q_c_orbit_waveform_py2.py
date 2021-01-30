@@ -101,6 +101,7 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     
     #print('Strain waveform observer time parameters', 'time array size:', np.size(t), 'duration (s):', time_until_coalescence, '(min):', time_until_coalescence/60,
     #      'df:', 1.0/time_until_coalescence)
+    print(time_until_coalescence)
     
     return t, h_plus, h_cross
 
@@ -114,7 +115,16 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     distance = r*(3.0857e16)
     
     #define some scaling factors for later equation simplification
-    A = (1.0/distance)*((G*M_c) / (c**2.0))**(5.0/4.0)
-    B = (30.0 * (6.0 **(1.0/2.0)) / 256.0)
+    A = (1.0/distance) * (((G*M_c) / (c**2.0))**(5.0/4.0))
+    B = (6.0 * (6.0 **(1.0/2.0)) * (5.0**(3.0/8.0)) ) / (256.0**(3.0/8.0))
+    
+    #find time until coalescence using eqts 4.39 and 4.19
+    num = B * (G**(3.0/8.0)) * (m_tot**(9.0/8.0)) 
+    den = c**(9.0/8.0) * ( (m1 * m2)**(3.0/8.0) )
+    tau_question = ( num / den )**(8.0/3.0)
+    
+    return tau_question
+    
+    
     
     
