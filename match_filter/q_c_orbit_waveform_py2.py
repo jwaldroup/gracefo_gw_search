@@ -128,7 +128,7 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     
     #3 - find tau now as a function of observer time instead of retarded time (pg 170)
     obs_t = np.arange(0, int(time_until_coalescence - cutoff_time), dt)
-    tau = int(time_until_coalescence - cutoff_time) - obs_t
+    tau = int(time_until_coalescence) - obs_t #don't subtract cutoff_time here to ensure tau does not go to zero)
     
     #4 - find Phi from equation 4.30
     Phi = -2.0 * ( ( (5.0*G*M_c)/(c**3.0) )**(-5.0/8.0) ) * (tau**(5.0/8.0) )
