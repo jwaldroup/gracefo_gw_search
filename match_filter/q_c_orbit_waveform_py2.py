@@ -118,22 +118,22 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     A = (1.0/distance) * (((G*M_c) / (c**2.0))**(5.0/4.0))
     B = (6.0 * (6.0 **(1.0/2.0)) * (5.0**(3.0/8.0)) ) / (256.0**(3.0/8.0))
     
-    #find cutoff time (ie time at which isco is reached) from eqts 4.39 and 4.19
+    #1 - find cutoff time (ie time at which isco is reached) from eqts 4.39 and 4.19
     num = B * (G**(3.0/8.0)) * (m_tot**(9.0/8.0)) 
     den = c**(9.0/8.0) * ( (m1 * m2)**(3.0/8.0) )
     cutoff_time = ( num / den )**(8.0/3.0)
     
-     #1 - find time to coalescence using equation 4.21, given a lower frequency limit
+    #2 - find time to coalescence using equation 4.21, given a lower frequency limit
     time_until_coalescence = 2.18*((1.21*1.989*10e30)/M_c)**(5.0/3.0) * (100.0/float(f_lower))**(8.0/3.0)
     
-    #2 - find tau now as a function of observer time instead of retarded time (pg 170)
-    obs_t = np.arange(0, int(time_until_coalescence), dt)
-    tau = int(time_until_coalescence) - obs_t
+    #3 - find tau now as a function of observer time instead of retarded time (pg 170)
+    obs_t = np.arange(0, int(time_until_coalescence - cutoff_time), dt)
+    tau = int(time_until_coalescence - cutoff_time) - obs_t
     
-    #3 - find Phi from equation 4.30
+    #4 - find Phi from equation 4.30
     Phi = -2.0 * ( ( (5.0*G*M_c)/(c**3.0) )**(-5.0/8.0) ) * (tau**(5.0/8.0) )
     
-    #4 - calculate plus and cross polarizations from equations 4.31 and 4.32
+    #5 - calculate plus and cross polarizations from equations 4.31 and 4.32
     h_plus = A*((5.0/(c*tau))**(1.0/4.0)) * (1+(np.cos(theta)**2.0)) * 0.5 * np.cos(Phi)
     h_cross = A*((5.0/(c*tau))**(1.0/4.0)) * (np.cos(theta)) * np.sin(Phi)
    
