@@ -27,6 +27,7 @@ def scipy_welch(ts, fs, seg_num):
     nperseg = int( np.size(ts) / seg_num )
     noverlap = (nperseg / 2)
     
-    freqs, psd = signal.welch(ts, fs, nperseg=nperseg, noverlap=noverlap)
+
+    freqs, psd = signal.welch(ts, fs, nperseg=nperseg, noverlap=noverlap) #fs is sampling frequency
     
     return freqs, psd

@@ -101,7 +101,7 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     
     #print('Strain waveform observer time parameters', 'time array size:', np.size(t), 'duration (s):', time_until_coalescence, '(min):', time_until_coalescence/60,
     #      'df:', 1.0/time_until_coalescence)
-    print(time_until_coalescence)
+    #print(time_until_coalescence)
     
     return t, h_plus, h_cross
 
@@ -118,16 +118,16 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     A = (1.0/distance) * (((G*M_c) / (c**2.0))**(5.0/4.0))
     B = (6.0 * (6.0 **(1.0/2.0)) * (5.0**(3.0/8.0)) ) / (256.0**(3.0/8.0))
     
-    #1 - find cutoff time (ie time at which isco is reached) from eqts 4.39 and 4.19
+    #1 - find cutoff time (ie time at which isco is reached and tau min is reached) from eqts 4.39 and 4.19
     num = B * (G**(3.0/8.0)) * (m_tot**(9.0/8.0)) 
     den = c**(9.0/8.0) * ( (m1 * m2)**(3.0/8.0) )
-    cutoff_time = ( num / den )**(8.0/3.0)
+    tau_min = ( num / den )**(8.0/3.0)
     
     #2 - find time to coalescence using equation 4.21, given a lower frequency limit
     time_until_coalescence = 2.18*((1.21*1.989*10e30)/M_c)**(5.0/3.0) * (100.0/float(f_lower))**(8.0/3.0)
     
     #3 - find tau now as a function of observer time instead of retarded time (pg 170)
-    obs_t = np.arange(0, int(time_until_coalescence - cutoff_time), dt)
+    obs_t = np.arange(0, int(time_until_coalescence - tau_min), dt)
     tau = int(time_until_coalescence) - obs_t #don't subtract cutoff_time here to ensure tau does not go to zero)
     
     #4 - find Phi from equation 4.30
@@ -136,7 +136,8 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     #5 - calculate plus and cross polarizations from equations 4.31 and 4.32
     h_plus = A*((5.0/(c*tau))**(1.0/4.0)) * (1+(np.cos(theta)**2.0)) * 0.5 * np.cos(Phi)
     h_cross = A*((5.0/(c*tau))**(1.0/4.0)) * (np.cos(theta)) * np.sin(Phi)
-   
+    print(tau_min)
+    
     return obs_t, h_plus, h_cross
     
     

@@ -133,26 +133,8 @@ filtered2c.append_zeros((np.size(filtered1)-np.size(filtered2)))
 combined = np.array(filtered1) + np.array(filtered2c)
 combined_ts = types.timeseries.TimeSeries(combined, filtered1.delta_t) #ensures same delta_t
 
-#display some important parameters
-#print('Combined psd FrequencySeries:','size:', np.size(combined_psd), 'df:', combined_psd.delta_f)
-# print('Combined Noise Timeseries:','size:', np.size(combined_ts), 'duration:', 
-#       combined_ts.duration, 'dt:', combined_ts.delta_t,'df:', 
-#       combined_ts.delta_f,'f_s:',) #(1.0/combined_ts.delta_t),'f_nyq:', (1.0/combined_ts.delta_t)/2.0)
-
-# #Compare merged noise curves with gracefo data
-# plt.loglog(combined_psd.sample_frequencies, np.sqrt(combined_psd), label='test asd')
-# #plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
-# #plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
-# plt.loglog(grace_freqs, grace_asd, label='gracefo asd')
-
-# plt.legend()
-# plt.xlabel('frequency (Hz)')
-# plt.ylabel('strain amplitude spectral density (1/sqrt(Hz))')
-# plt.grid()
-# plt.legend()
-
-# # plt.savefig('grace_fo_model_curve_comparison.png')
-# plt.show()
+#merged_noise = np.array(filtered1) + np.array(filtered2c)
+#merged_noise_ts = types.timeseries.TimeSeries(merged_noise, delta_t=0.1) #ensures same delta_t
 
 # 4 - Generate waveform template----------------------------------------------------------------------------
 
@@ -166,7 +148,7 @@ dt = combined_ts.delta_t #0.1
 theta = 0.0 
 
 #generate waveform as seen by observer
-t_array, hp, hc = q_c_py2.strain_waveform_observer_time(m1, m2, f_low, dt, r, theta)
+t_array, hp, hc = q_c_py2.obs_time_insprial_strain(m1, m2, f_low, dt, r, theta)
 
 
 #note for later - get abs_tol from amplitude of wave at each r value and input automatically into zero_finder functions
