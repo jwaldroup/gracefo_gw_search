@@ -148,7 +148,7 @@ dt = combined_ts.delta_t #0.1
 theta = 0.0 
 
 #generate waveform as seen by observer
-t_array, hp, hc = q_c_py2.obs_time_insprial_strain(m1, m2, f_low, dt, r, theta)
+t_array, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_low, dt, r, theta)
 
 
 #note for later - get abs_tol from amplitude of wave at each r value and input automatically into zero_finder functions
