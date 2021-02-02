@@ -139,7 +139,9 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     #5 - calculate plus and cross polarizations from equations 4.31 and 4.32
     h_plus = A*((5.0/(c*tau))**(1.0/4.0)) * (1+(np.cos(theta)**2.0)) * 0.5 * np.cos(Phi)
     h_cross = A*((5.0/(c*tau))**(1.0/4.0)) * (np.cos(theta)) * np.sin(Phi)
-    print(tau_min)
+    
+    #sanity check
+    #print(tau_min)
     
     return obs_t, h_plus, h_cross
     
