@@ -108,11 +108,14 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
 def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     
     #define some important quantities
-    M_c = chirp_mass(m1,m2)
-    m_tot = float(m1 + m2)
+    sol_mass = 1.989*10e30
     G = 6.67*10e-11
     c = 3.0*1e8
     distance = r*(3.0857e16)
+    M_c = chirp_mass(m1,m2)
+    m_tot = float( sol_mass * (m1 + m2) )
+    m1_kg = sol_mass * m1
+    m2_kg = sol_mass * m2
     
     #define some scaling factors for later equation simplification
     A = (1.0/distance) * (((G*M_c) / (c**2.0))**(5.0/4.0))
@@ -120,7 +123,7 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     
     #1 - find cutoff time (ie time at which isco is reached and tau min is reached) from eqts 4.39 and 4.19
     num = B * (G**(3.0/8.0)) * (m_tot**(9.0/8.0)) 
-    den = c**(9.0/8.0) * ( (m1 * m2)**(3.0/8.0) )
+    den = c**(9.0/8.0) * ( (m1_kg * m2_kg)**(3.0/8.0) )
     tau_min = ( num / den )**(8.0/3.0)
     
     #2 - find time to coalescence using equation 4.21, given a lower frequency limit

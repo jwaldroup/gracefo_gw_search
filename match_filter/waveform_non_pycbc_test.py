@@ -13,8 +13,8 @@ import q_c_orbit_waveform_py2 as q_c_py2
 import zero_finder
 
 #binary system parameters
-m1 = 500.0 #solar mass multiples
-m2 = 500.0
+m1 = 100.0 #solar mass multiples
+m2 = 100.0
 f_low = 0.1
 r = 50.0 #in parsecs
 dt = 0.1
@@ -35,15 +35,15 @@ plt.legend()
 plt.grid()
 plt.show()
 
-plt.figure()
-plt.plot(wf_t_array, hp, label='full waveform')
-plt.xlabel('time (s)')
-plt.ylabel('amplitude strain')
-plt.legend()
-plt.grid()
-plt.show()
+#plt.figure()
+#plt.plot(wf_t_array, hp, label='full waveform')
+#plt.xlabel('time (s)')
+#plt.ylabel('amplitude strain')
+#plt.legend()
+#plt.grid()
+#plt.show()
 
-print('wf max values without and then with cutoff', np.max(hp), np.max(h_plus))
+#print('wf max values without and then with cutoff', np.max(hp), np.max(h_plus))
 
 # f_gw = 0.1
 # duration = int(5 * 1.0/f_gw)

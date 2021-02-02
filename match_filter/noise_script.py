@@ -47,11 +47,18 @@ grace_asd = grace_signal / 220.0e3 #converts between m/sqr(Hz) and 1/sqr(Hz)
 ### 2 - Build Noise Curve Model
 
 ##Curve 1: the "hump"---------------------------------------------------------------------------------------------------------------------
-N = 400000 
+N = 2000000 #long enough to encompass waveforms with a f_low of 0.1 and minimal mass of 100 sol masses each 
 cutoff = 0.001 #0.001 #0.001  
 order = 1000 #610 #570 
 beta = 18 #11.75 #11.0 
 seg_num = 3
+
+#saved old parameters
+#N = 400000 
+#cutoff = 0.001 #0.001 #0.001  
+#order = 1000 #610 #570 
+#beta = 18 #11.75 #11.0 
+#seg_num = 3
 
 #noise signal
 np.random.seed(138374923)
