@@ -97,7 +97,7 @@ noise2 = np.random.uniform(-1, 1, size=N)
 noise2_ts = types.timeseries.TimeSeries(noise2, delta_t=0.1)
 
 #adjust amplitude
-noise2_ts = noise2_ts * 10e-9
+noise2_ts = noise2_ts * 10e-6
 
 #filter it
 filtered2 = noise2_ts.lowpass_fir(cutoff, order, beta=beta)
@@ -231,16 +231,18 @@ merged_noise_tsc = merged_noise_ts.copy()
 #random_waveform = waveform.cyclic_time_shift(shift_seconds)#np.roll(waveform, random_index)
 
 #roll template instead with np roll
-random_index = 200000
+random_index = 700000
 random_waveform = np.roll(waveform, random_index)
 
 ## this section checks the roll position of the waveform when uncommented
-# rand_wf_ts = types.timeseries.TimeSeries(random_waveform, delta_t=combined_tsc.delta_t)
-
-# plt.figure()
-# plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='resized and plotted against time')
-# plt.legend()
-# plt.show()
+#rand_wf_ts = types.timeseries.TimeSeries(random_waveform, delta_t=merged_noise_tsc.delta_t)
+#
+#plt.figure()
+#plt.plot(rand_wf_ts.sample_times, rand_wf_ts, label='wf injection location')
+#plt.plot(waveform.sample_times, waveform, label='wf before random shift')
+#plt.legend()
+#plt.grid()
+#plt.show()
 
 # plt.figure()
 # plt.plot(rand_wf_ts, label='plotted against array elements')
@@ -255,14 +257,6 @@ signal_and_noise = types.timeseries.TimeSeries(injected_array, delta_t=merged_no
 #         'duration:', signal_and_noise.duration, 'dt:', signal_and_noise.delta_t, 
 #         'df:', signal_and_noise.delta_f)
 
-# #display for visual evaluation
-# plt.figure()
-# plt.plot(injected_ts.sample_times, injected_ts, label=('random shift '+str(random_index)+' pts'))
-# plt.xlabel('times (s)')
-# plt.ylabel('Noise + hidden signal strain amplitude')
-# plt.grid()
-# plt.legend()
-# plt.show()
 
 ## 6 - Matched filter - condition the noise curve and prepare psd -----------------------------------
 
@@ -283,9 +277,21 @@ conditioned = injected_ts_highpass.crop(2,2)
 # plt.show()
 
 #make sure noise psd is of same delta_f as the noise data timeseries
-#combined_psd = welch_function.pycbc_welch(combined_ts, 1) #with no injection
-signal_and_noise_psd = welch_function.pycbc_welch(signal_and_noise, 15) #with injection
-grace_psd = psd.interpolate(signal_and_noise_psd, conditioned.delta_f)
+signal_and_noise_psd = welch_function.pycbc_welch(conditioned, 15)
+#grace_psd = psd.interpolate(welch_function.pycbc_welch(merged_noise_ts.copy(), 15), conditioned.delta_f)
+grace_psd = psd.interpolate(welch_function.pycbc_welch(signal_and_noise.copy(), 15), conditioned.delta_f)
+#sig_n_c = signal_and_noise_psd.copy()
+#grace_psd = psd.interpolate(sig_n_c, conditioned.delta_f)
+
+plt.figure()
+plt.loglog(grace_psd.sample_frequencies, np.sqrt(grace_psd), label='noise model asd with no signal')
+plt.loglog(signal_and_noise_psd.sample_frequencies, np.sqrt(signal_and_noise_psd), label='signal and noise asd')
+plt.loglog(grace_freqs, grace_asd, label='gracefo asd')
+
+plt.legend()
+plt.xlabel('frequency (Hz)')
+plt.ylabel('strain amplitude spectral density (1/sqrt(Hz))')
+plt.grid()
 
 #create the template for the matched filter 
 match_template = hp_ts.copy()
@@ -318,18 +324,18 @@ match_template.resize(np.size(conditioned))
 #       'df:', match_template.delta_f, conditioned.delta_f, grace_psd.delta_f)
 
 # 6.2 - Perform the matched filter via pycbc's filter module-------------------------------------------------------------------------
-snr1 = matched_filter(match_template, conditioned, psd=grace_psd)
+snr1 = matched_filter(match_template, conditioned, psd=grace_psd)#psd=signal_and_noise_psd)
 
 snr1 = snr1.crop(10, 10)
 
 #Viewing matched filter snr timeseries
-#plt.figure()
-#plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
-#plt.ylabel('Signal-to-noise')
-#plt.xlabel('Time (s)')
-#plt.grid()
-#plt.legend()
-#plt.show()
+plt.figure()
+plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
+plt.ylabel('Signal-to-noise')
+plt.xlabel('Time (s)')
+plt.grid()
+plt.legend()
+plt.show()
 
 
 
@@ -441,17 +447,8 @@ snr_estimate_sp_welch = np.sqrt(snr_squared_sp_welch)
 print("snr estimate via scipy welch", snr_estimate_sp_welch)
 
 
-
-
 ##6.3.2.1 check snr estimate's change with distance------------------------------------------------------------------------------------------
 #import snr_distance_comparison as snr_dc
-#
-## distances = np.arange(50, 5000, 50)
-## # snr_outputs = snr_dc.snr_distance_plotter(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='no injection of waveform in noise data')
-#
-## inject_c = injected_ts.copy()
-## injected_fs = welch_function.pycbc_welch(inject_c, 3)
-#
-## #snr_with_temp_inject_outputs = snr_dc.snr_distance_plotter_wf_self_generating(m1, m2, f_low, dt, theta, distances, injected_fs, lgd_label='welch snr distance comparison')
-#
-## snr_outputs = snr_dc.snr_distance_plotter_wf_self_generating(m1, m2, f_low, dt, theta, distances, noise_psd, lgd_label='fft snr distance comparison')
+
+#distances = [50, 100, 1000, 2000, 5000]
+#snr_py_welch, snr_fft, snr_sp_welch = snr_dc.snr_distance_plotter_wf_self_generating(m1, m2, f_low, dt, theta, distances, noise_psd)

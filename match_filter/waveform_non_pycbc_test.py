@@ -13,10 +13,10 @@ import q_c_orbit_waveform_py2 as q_c_py2
 import zero_finder
 
 #binary system parameters
-m1 = 100.0 #solar mass multiples
-m2 = 100.0
+m1 = 500.0 #solar mass multiples
+m2 = 500.0
 f_low = 0.1
-r = 50.0 #in parsecs
+r = 1000.0 #in parsecs
 dt = 0.1
 theta = 0.0 
 
@@ -27,8 +27,8 @@ obs_t, h_plus, h_cross = q_c_py2.obs_time_inspiral_strain(m1, m2, f_low, dt, r, 
 
 #t_array, hp2, hc2 = q_c_py2.strain_waveform_in_retarded_time(m1, m2, f_low, dt, r, theta)
 
-plt.plot(wf_t_array, hp, label='full waveform')
-plt.plot(obs_t, h_plus, label='inspiral waveform')
+plt.plot(wf_t_array, hp, label='waveform with no cutoff')
+plt.plot(obs_t, h_plus, label='inspiral only waveform (with cutoff)')
 plt.xlabel('time (s)')
 plt.ylabel('amplitude strain')
 plt.legend()
