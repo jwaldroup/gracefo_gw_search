@@ -427,20 +427,22 @@ print("snr estimate via fft", snr_estimate_fft) #, "is complex?", np.iscomplex(s
 
 ##revise to include windowing (done via scipy welch function that also uses the Hanning Window like Pycbc Welch)
 frequency_array, sp_welch_psd = welch_function.scipy_welch(h_ts, f_s, seg_num)
+frequency_array_n_psd, sp_welch_noise_psd = welch_function.scipy_welch(merged_noise_ts.copy(), f_s, seg_num)
 
+sp_welch_noise_psd = types.frequencyseries.FrequencySeries(sp_welch_noise_psd, delta_f= (frequency_array_n_psd[1]-frequency_array_n_psd[0]) )
 sp_welch_psd = types.frequencyseries.FrequencySeries(sp_welch_psd, delta_f=(frequency_array[1]-frequency_array[0]))
 
-#print("vector sizes:" , np.size(sp_welch_psd), np.size(noise_psd))
-#print('df sp psd:', sp_welch_psd.delta_f, 'df noise:', noise_psd.delta_f) 
-#noise_psd_2 = psd.interpolate(noise_psd, sp_welch_psd.delta_f)
+#print("vector sizes:" , np.size(sp_welch_psd), np.size(sp_welch_noise_psd))
+#print('df sp psd:', sp_welch_psd.delta_f, 'df noise:', sp_welch_noise_psd.delta_f) 
+#noise_psd_2 = psd.interpolate(sp_welch_noise_psd, sp_welch_psd.delta_f)
 #print("vector sizes:" , np.size(sp_welch_psd), np.size(noise_psd_2))
 
-#print("vector sizes:" , np.size(sp_welch_psd), np.size(noise_psd))
-#print('df sp psd:', sp_welch_psd.delta_f, 'df noise:', noise_psd.delta_f) 
-sp_welch_psd = psd.interpolate(sp_welch_psd, noise_psd.delta_f)
-#print("vector sizes:" , np.size(sp_welch_psd), np.size(noise_psd))
+print("vector sizes:" , np.size(sp_welch_psd), np.size(sp_welch_noise_psd))
+print('df sp psd:', sp_welch_psd.delta_f, 'df noise:', sp_welch_noise_psd.delta_f) 
+sp_welch_psd = psd.interpolate(sp_welch_psd, sp_welch_noise_psd.delta_f)
+print("vector sizes:" , np.size(sp_welch_psd), np.size(sp_welch_noise_psd))
 
-psd_ratio_sp_welch = (4.0 * sp_welch_psd) / (noise_psd)
+psd_ratio_sp_welch = (4.0 * sp_welch_psd) / (sp_welch_noise_psd)
 snr_squared_sp_welch = psd_ratio_sp_welch.sum()
 snr_estimate_sp_welch = np.sqrt(snr_squared_sp_welch)
 
