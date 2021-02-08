@@ -158,8 +158,8 @@ t_array, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_low, dt, r, theta)
 # :)
 
 #truncate such that graph ends by going smoothly to zero
-#hp = zero_finder.last_zero_finder(hp, abs_tol=1e-14)
-#hp = zero_finder.first_zero_finder(hp, abs_tol=1e-15)
+hp = zero_finder.last_zero_finder(hp, abs_tol=1e-14)
+hp = zero_finder.first_zero_finder(hp, abs_tol=1e-15)
 
 #convert strain arrays to timeseries objects
 hp_ts = types.timeseries.TimeSeries(hp, merged_noise_ts.delta_t) #ensures same delta_t
