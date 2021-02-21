@@ -292,6 +292,7 @@ plt.legend()
 plt.xlabel('frequency (Hz)')
 plt.ylabel('strain amplitude spectral density (1/sqrt(Hz))')
 plt.grid()
+#plt.show()
 
 #create the template for the matched filter 
 match_template = hp_ts.copy()
@@ -329,13 +330,13 @@ snr1 = matched_filter(match_template, conditioned, psd=grace_psd)#psd=signal_and
 snr1 = snr1.crop(10, 10)
 
 #Viewing matched filter snr timeseries
-plt.figure()
-plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
-plt.ylabel('Signal-to-noise')
-plt.xlabel('Time (s)')
-plt.grid()
-plt.legend()
-plt.show()
+#plt.figure()
+#plt.plot(snr1.sample_times, abs(snr1), label='abs snr')
+#plt.ylabel('Signal-to-noise')
+#plt.xlabel('Time (s)')
+#plt.grid()
+#plt.legend()
+#plt.show()
 
 
 
@@ -362,15 +363,16 @@ plt.show()
 
 #make unique copies of grace psd frequencyseries and strain timeseries
 h_ts = hp_ts.copy() #h(t) 
-noise_psd = signal_and_noise_psd.copy() #S_n(f) in 1/Hz
+h_ts.resize(np.size(merged_noise_ts))
+noise_psd = welch_function.pycbc_welch(merged_noise_ts.copy(), 15)
 
 #take psd of strain timeseries
 h_fs = welch_function.pycbc_welch(h_ts, 15)
 
 #equate df of both frequencyseries < - Note for future generalization - rewrite as if else statement
-#print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
-#print('df h_fs:', h_fs.delta_f, 'df noise:', noise_psd.delta_f) #to check the df of each
-h_fs = psd.interpolate(h_fs, noise_psd.delta_f) #interpolate the larger df of the two to match
+print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
+print('df h_fs:', h_fs.delta_f, 'df noise:', noise_psd.delta_f) #to check the df of each
+#h_fs = psd.interpolate(h_fs, noise_psd.delta_f) #interpolate the larger df of the two to match
 #print("vector sizes:" , np.size(h_fs), np.size(noise_psd))
 
 ##calculate snr estimate using pycbc welch (original)
@@ -388,36 +390,23 @@ snr_estimate_pycbc_welch = np.sqrt(snr_squared_pycbc_welch)
 print("snr estimate via pycbc welch", snr_estimate_pycbc_welch) #, "is complex?", np.iscomplex(snr_estimate_welch))
 
 ##calculate snr estimate using numpy fft
-freqs = np.fft.fftfreq(np.size(h_ts))
-mask = freqs > 0
+h_ts = hp_ts.copy()
+signal_freqs = np.fft.fftfreq(np.size(h_ts))
+signal_mask = signal_freqs > 0
 raw_fft_h_ts = np.fft.fft(h_ts)
 psd_of_h_ts = ( 2.0 * np.abs( raw_fft_h_ts / float( np.size(h_ts) ) ) )** 2.0
 
-## #plt.figure()
-## # plt.loglog(freqs[mask], psd_of_h_ts[mask], label='fft waveform')
-## # plt.legend()
-## # plt.xlabel('freqs')
-## # plt.show()
+noise_freqs = np.fft.fftfreq(np.size(merged_noise_ts.copy()))
+noise_mask = noise_freqs > 0
+raw_fft_noise = np.fft.fft(merged_noise_ts.copy())
+psd_of_noise = (2.0 * np.abs( raw_fft_noise) / float(np.size(merged_noise_ts.copy())))** 2.0
 
-#turn psd to frequencyseries with df of fftfreqs
-fft_psd = types.frequencyseries.FrequencySeries(psd_of_h_ts[mask], delta_f=(1.0/float(h_ts.duration)))
-#fft_psd = types.frequencyseries.FrequencySeries(psd_of_h_ts[mask], delta_f=(freqs[1]-freqs[0]) )
-#print('fft df?', freqs[1]-freqs[0], 1.0/float(h_ts.duration))
-
-## #interpolate psd to match noise_psd.delta_f (this block is for if noise psd is larger)
-#print("vector sizes:" , np.size(fft_psd), np.size(noise_psd))
-#print('df fft_psd:', fft_psd.delta_f, 'df noise:', noise_psd.delta_f) 
-fft_psd = psd.interpolate(fft_psd, noise_psd.delta_f)
-#print("vector sizes:" , np.size(fft_psd), np.size(noise_psd))
-
-## #interpolate psd to match noise_psd.delta_f (this block is for if noise psd is smaller)
-#print("vector sizes:" , np.size(fft_psd), np.size(noise_psd))
-#print('df fft_psd:', fft_psd.delta_f, 'df noise:', noise_psd.delta_f) 
-#noise_psd_1 = psd.interpolate(noise_psd, fft_psd.delta_f)
-#print("vector sizes:" , np.size(fft_psd), np.size(noise_psd_1))
+#print("vector sizes:" , np.size(psd_of_h_ts), np.size(psd_of_noise))
+fft_psd = np.interp(noise_freqs, signal_freqs, psd_of_h_ts)
+#print("vector sizes:" , np.size(fft_psd), np.size(psd_of_noise))
 
 #calculate snr
-psd_ratio_fft = (4.0 * fft_psd) / (noise_psd[:-2]) #/ (noise_psd[:-1])
+psd_ratio_fft = (4.0 * fft_psd[noise_mask]) / (psd_of_noise[noise_mask])
 
 #print("is psd_ratio complex?", np.iscomplex(psd_ratio_fft))
 snr_squared_fft = psd_ratio_fft.sum()
@@ -426,6 +415,7 @@ snr_estimate_fft = np.sqrt(snr_squared_fft)
 print("snr estimate via fft", snr_estimate_fft) #, "is complex?", np.iscomplex(snr_estimate_fft))
 
 ##revise to include windowing (done via scipy welch function that also uses the Hanning Window like Pycbc Welch)
+h_ts = hp_ts.copy()
 frequency_array, sp_welch_psd = welch_function.scipy_welch(h_ts, f_s, seg_num)
 frequency_array_n_psd, sp_welch_noise_psd = welch_function.scipy_welch(merged_noise_ts.copy(), f_s, seg_num)
 
@@ -437,17 +427,16 @@ sp_welch_psd = types.frequencyseries.FrequencySeries(sp_welch_psd, delta_f=(freq
 #noise_psd_2 = psd.interpolate(sp_welch_noise_psd, sp_welch_psd.delta_f)
 #print("vector sizes:" , np.size(sp_welch_psd), np.size(noise_psd_2))
 
-print("vector sizes:" , np.size(sp_welch_psd), np.size(sp_welch_noise_psd))
-print('df sp psd:', sp_welch_psd.delta_f, 'df noise:', sp_welch_noise_psd.delta_f) 
+#print("vector sizes:" , np.size(sp_welch_psd), np.size(sp_welch_noise_psd))
+#print('df sp psd:', sp_welch_psd.delta_f, 'df noise:', sp_welch_noise_psd.delta_f) 
 sp_welch_psd = psd.interpolate(sp_welch_psd, sp_welch_noise_psd.delta_f)
-print("vector sizes:" , np.size(sp_welch_psd), np.size(sp_welch_noise_psd))
+#print("vector sizes:" , np.size(sp_welch_psd), np.size(sp_welch_noise_psd))
 
 psd_ratio_sp_welch = (4.0 * sp_welch_psd) / (sp_welch_noise_psd)
 snr_squared_sp_welch = psd_ratio_sp_welch.sum()
 snr_estimate_sp_welch = np.sqrt(snr_squared_sp_welch)
 
 print("snr estimate via scipy welch", snr_estimate_sp_welch)
-
 
 ##6.3.2.1 check snr estimate's change with distance------------------------------------------------------------------------------------------
 #import snr_distance_comparison as snr_dc

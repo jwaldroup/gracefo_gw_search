@@ -13,7 +13,7 @@ def pycbc_welch(ts, segnum):
     import numpy as np
     
     seg_len = int(np.size(ts) / segnum) #higher number = more segments and increasing smoothing & decrease power
-    seg_stride = seg_len / 2 #50% overlap
+    seg_stride = int(seg_len / 2) #50% overlap
     
     noise_fs = psd.welch(ts, seg_len=seg_len,
                           seg_stride=seg_stride)

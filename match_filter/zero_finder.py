@@ -33,7 +33,7 @@ def first_zero_finder(test_array, abs_tol=1e-13):
     for i in range(np.size(test_array)):
         if np.isclose(test_array[i], 0.0, atol=abs_tol) == True:
             
-            output = test_array[i:] 
+            output = test_array[(i+1):] 
             break
         
         else:

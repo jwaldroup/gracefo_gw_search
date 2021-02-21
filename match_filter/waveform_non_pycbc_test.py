@@ -13,10 +13,10 @@ import q_c_orbit_waveform_py2 as q_c_py2
 import zero_finder
 
 #binary system parameters
-m1 = 500.0 #solar mass multiples
-m2 = 500.0
+m1 = 2920.0 #solar mass multiples
+m2 = 2920.0
 f_low = 0.1
-r = 1000.0 #in parsecs
+r = 9990.0 #in parsecs
 dt = 0.1
 theta = 0.0 
 

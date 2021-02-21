@@ -144,7 +144,3 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     #print(tau_min)
     
     return obs_t, h_plus, h_cross
-    
-    
-    
-    
