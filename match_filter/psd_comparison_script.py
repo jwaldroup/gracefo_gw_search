@@ -15,10 +15,12 @@ from pycbc import psd
 from pycbc import types
 
 #td total number of samples
-n = 1000
+#n = 1000
+n = 10000
 
 #td time length seconds
-Lx = 100
+#Lx = 100
+Lx = 1000
 
 #angular freq of fund frequency (2pi * fundfreq)
 ang = 2.0 * np.pi / Lx
@@ -43,21 +45,32 @@ mask = freqs > 0
 fft_vals = np.fft.fft(y)
 
 #calculate the fft PSD
-fft_psd_1 = (2.0 * np.abs(fft_vals / float(n) ) ) ** 2.0
-#fft_psd_2 = (np.abs(2.0 * fft_vals/ float(n)) ) ** 2.0 #these two lines are equivalent :)
+fft_psd_1 = 2.0 * ( np.abs(fft_vals / float(n) ) ) ** 2.0
+
+#checking psd
+std_y = np.std(y)
+var_y = std_y**2.0
+print(var_y, np.sum(fft_psd_1[mask]))
 
 #calculate the welch PSD
 dt = float(Lx)/float(n)
+segnum = 80
 y_ts = types.timeseries.TimeSeries(y, delta_t=dt)
-welch_psd = welch_function.pycbc_welch(y_ts, 15)
+welch_psd = welch_function.pycbc_welch(y_ts, segnum)
+
+test_welch_psd = welch_function.test_py_welch(y_ts, 256)
 
 #calulate the scipy PSD
-freqs2, psd2 = welch_function.scipy_welch(y, s_freq, 15)
+#freqs2, psd2 = welch_function.scipy_welch(y, s_freq, 80)
+
+#test scipy psd for finding segmentation
+freqs3, psd3 = welch_function.test_welch(y, s_freq, 256)
 
 plt.plot(freqs[mask], fft_psd_1[mask], label='fft psd 1')
-#plt.plot(freqs[mask], fft_psd_2[mask], label='fft psd 2')
-plt.plot(welch_psd.sample_frequencies, welch_psd, label='pycbc welch')
-plt.plot(freqs2, psd2, label='scipy welch')
+#plt.plot(welch_psd.sample_frequencies, welch_psd, label='pycbc welch')
+plt.plot(freqs3, psd3, label='test scipy welch')
+#plt.plot(freqs2, psd2, label='scipy welch')
+plt.plot(test_welch_psd.sample_frequencies, test_welch_psd, label='test py welch')
 plt.xlabel('frequencies (hz)')
 plt.ylabel('psd (1/hz)')
 plt.grid()

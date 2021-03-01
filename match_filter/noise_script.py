@@ -186,10 +186,11 @@ merged_noise_ts = types.timeseries.TimeSeries(merged_noise, delta_t=0.1) #ensure
 
 #Compare merged noise curves with gracefo data
 noise_psd = welch_function.pycbc_welch(merged_noise_ts, seg_num)
-plt.loglog(noise_psd.sample_frequencies, np.sqrt(noise_psd), label='noise model asd')
 plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
 plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
 plt.loglog(grace_freqs, grace_asd, label='gracefo asd')
+plt.loglog(noise_psd.sample_frequencies, np.sqrt(noise_psd), label='noise model asd')
+
 
 plt.legend()
 plt.xlabel('frequency (Hz)')
@@ -199,12 +200,11 @@ plt.grid()
 plt.show()
 
 ## 4 - export as csv file----------------------------------------------------------------------------------
-#Import data from csv
 
-fileobj = open('noise_model.csv', 'w')
-writerobj = csv.writer(fileobj)
+# fileobj = open('noise_model.csv', 'w')
+# writerobj = csv.writer(fileobj)
 
-timeseries_data = merged_noise_ts.copy()
+# timeseries_data = merged_noise_ts.copy()
 
-writerobj.writerows(timeseries_data)
-fileobj.close()
+# writerobj.writerows(timeseries_data)
+# fileobj.close()

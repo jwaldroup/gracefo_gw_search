@@ -278,8 +278,8 @@ conditioned = injected_ts_highpass.crop(2,2)
 
 #make sure noise psd is of same delta_f as the noise data timeseries
 signal_and_noise_psd = welch_function.pycbc_welch(conditioned, 15)
-#grace_psd = psd.interpolate(welch_function.pycbc_welch(merged_noise_ts.copy(), 15), conditioned.delta_f)
-grace_psd = psd.interpolate(welch_function.pycbc_welch(signal_and_noise.copy(), 15), conditioned.delta_f)
+grace_psd = psd.interpolate(welch_function.pycbc_welch(merged_noise_ts.copy(), 15), conditioned.delta_f)
+#grace_psd = psd.interpolate(welch_function.pycbc_welch(signal_and_noise.copy(), 15), conditioned.delta_f)
 #sig_n_c = signal_and_noise_psd.copy()
 #grace_psd = psd.interpolate(sig_n_c, conditioned.delta_f)
 
@@ -325,7 +325,7 @@ match_template.resize(np.size(conditioned))
 #       'df:', match_template.delta_f, conditioned.delta_f, grace_psd.delta_f)
 
 # 6.2 - Perform the matched filter via pycbc's filter module-------------------------------------------------------------------------
-snr1 = matched_filter(match_template, conditioned, psd=grace_psd)#psd=signal_and_noise_psd)
+snr1 = matched_filter(match_template, conditioned, psd=grace_psd) #psd=signal_and_noise_psd)
 
 snr1 = snr1.crop(10, 10)
 
@@ -394,12 +394,12 @@ h_ts = hp_ts.copy()
 signal_freqs = np.fft.fftfreq(np.size(h_ts))
 signal_mask = signal_freqs > 0
 raw_fft_h_ts = np.fft.fft(h_ts)
-psd_of_h_ts = ( 2.0 * np.abs( raw_fft_h_ts / float( np.size(h_ts) ) ) )** 2.0
+psd_of_h_ts = 2.0 * ( np.abs( raw_fft_h_ts / float( np.size(h_ts) ) ) )** 2.0
 
 noise_freqs = np.fft.fftfreq(np.size(merged_noise_ts.copy()))
 noise_mask = noise_freqs > 0
 raw_fft_noise = np.fft.fft(merged_noise_ts.copy())
-psd_of_noise = (2.0 * np.abs( raw_fft_noise) / float(np.size(merged_noise_ts.copy())))** 2.0
+psd_of_noise = 2.0 * (np.abs( raw_fft_noise) / float(np.size(merged_noise_ts.copy())))** 2.0
 
 #print("vector sizes:" , np.size(psd_of_h_ts), np.size(psd_of_noise))
 fft_psd = np.interp(noise_freqs, signal_freqs, psd_of_h_ts)

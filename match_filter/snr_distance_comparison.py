@@ -45,7 +45,7 @@ def snr_distance_plotter_wf_self_generating(mass1, mass2, f_lower_bound, dt, the
         freqs = np.fft.fftfreq(np.size(h_ts))
         mask = freqs > 0
         raw_fft_h_ts = np.fft.fft(h_ts.copy())
-        psd_of_h_ts = ( 2.0 * np.abs( raw_fft_h_ts / float( np.size(h_ts) ) ) )** 2.0
+        psd_of_h_ts = 2.0 * ( np.abs( raw_fft_h_ts / float( np.size(h_ts) ) ) )** 2.0
         
         #turn psd to frequencyseries with df of fftfreqs
         fft_psd = types.frequencyseries.FrequencySeries(psd_of_h_ts[mask], delta_f=(1.0/float(h_ts.duration)))
