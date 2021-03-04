@@ -167,136 +167,136 @@ plt.grid()
 plt.show()
 
 
-# # 2 - initialize an array of masses to test and an array of distances----------------------------------------------------------------
+# 2 - initialize an array of masses to test and an array of distances----------------------------------------------------------------
 
-# mass_array = np.logspace(500, 800) #in sol masses
-# distances_array = np.logspace(1000, 1500) #in pc
+mass_array = np.logspace(500, 800) #in sol masses
+distances_array = np.logspace(1000, 1500) #in pc
 
-# #print('mass array size:', np.size(mass_array), 'distance array size:', np.size(distances_array))
-# #print(mass_array[0:10])
-# #print(distances_array[0:10])
+#print('mass array size:', np.size(mass_array), 'distance array size:', np.size(distances_array))
+#print(mass_array[0:10])
+#print(distances_array[0:10])
 
-# # 3 - for loop over the array of distances that for each mass:-----------------------------------------------------------------------
-#     #3.1 computes waveform 
-#     #3.2 take psd of waveform 
-#     #3.3 calculates the snr estimate for that selected mass at that distance iteration
-#     #3.3.1 packages the snr vs distance vector into a 2d array of mass vs distance
+# 3 - for loop over the array of distances that for each mass:-----------------------------------------------------------------------
+    #3.1 computes waveform 
+    #3.2 take psd of waveform 
+    #3.3 calculates the snr estimate for that selected mass at that distance iteration
+    #3.3.1 packages the snr vs distance vector into a 2d array of mass vs distance
     
-# snr_values_row_mass_column_distance = np.zeros((np.size(mass_array), np.size(distances_array)), dtype=merged_noise_ts.dtype)
+snr_values_row_mass_column_distance = np.zeros((np.size(mass_array), np.size(distances_array)), dtype=merged_noise_ts.dtype)
 
-# for i in range(np.size(mass_array)):
+for i in range(np.size(mass_array)):
     
-#     #print('mass:'+str(mass_array[i]))
+    #print('mass:'+str(mass_array[i]))
     
-#     #set mass and other waveform parameters 
-#     m1 = mass_array[i]
-#     m2 = mass_array[i]
-#     f_low = 0.1
-#     dt = 0.1
-#     theta = 0.0
+    #set mass and other waveform parameters 
+    m1 = mass_array[i]
+    m2 = mass_array[i]
+    f_low = 0.1
+    dt = 0.1
+    theta = 0.0
     
-#     for j in range(np.size(distances_array)):
+    for j in range(np.size(distances_array)):
         
-#         #print('distance:'+str(distances_array[j]))
+        #print('distance:'+str(distances_array[j]))
         
-#         #set distance parameter
-#         r = distances_array[j]
+        #set distance parameter
+        r = distances_array[j]
         
-#         #3.1 computes waveform
-#         t_array, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_low, dt, r, theta)
+        #3.1 computes waveform
+        t_array, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_low, dt, r, theta)
         
-# #        #edit waveform by truncation at first and last zero
-# ##        waveform_max = np.max(hp)
-# ##        last_tolerance = waveform_max * 1e-2
-# ##        first_tolerance = waveform_max * 1e-4
-# ##        
-# #        #hp = zero_finder.last_zero_finder(hp) #, abs_tol=last_tolerance)
-# #       # hp = zero_finder.first_zero_finder(hp) #, abs_tol=first_tolerance)
-# #        
-# #        #convert to pycbc compatible timeseries
-# #        hp_ts = types.timeseries.TimeSeries(hp, merged_noise_ts.delta_t) #ensures same delta_t
-# #        
-# #        #3.2 take psd of waveform
-# #        hp_psd_fs = welch_function.pycbc_welch(hp_ts, 15)
-# #
-# #        #3.3 calculates the snr estimate for that selected mass at that distance iteration
-# ##        print("vector sizes:" , np.size(hp_psd_fs), np.size(noise_psd))
-# ##        print('df h_fs:', hp_psd_fs.delta_f, 'df noise:', noise_psd.delta_f) #to check the df of each
-# #
-# #        hp_psd_fs = psd.interpolate(hp_psd_fs, noise_psd.delta_f) #interpolate the larger df of the two to match
-# ##        print("vector sizes:" , np.size(hp_psd_fs), np.size(noise_psd))
-# #
-# #        print(noise_psd.sample_frequencies[-10:])
-# #        print(hp_psd_fs.sample_frequencies[-10:])
-# #        print(np.size(noise_psd.sample_frequencies), np.size(hp_psd_fs.sample_frequencies))
+#        #edit waveform by truncation at first and last zero
+##        waveform_max = np.max(hp)
+##        last_tolerance = waveform_max * 1e-2
+##        first_tolerance = waveform_max * 1e-4
+##        
+#        #hp = zero_finder.last_zero_finder(hp) #, abs_tol=last_tolerance)
+#       # hp = zero_finder.first_zero_finder(hp) #, abs_tol=first_tolerance)
+#        
+#        #convert to pycbc compatible timeseries
+#        hp_ts = types.timeseries.TimeSeries(hp, merged_noise_ts.delta_t) #ensures same delta_t
+#        
+#        #3.2 take psd of waveform
+#        hp_psd_fs = welch_function.pycbc_welch(hp_ts, 15)
+#
+#        #3.3 calculates the snr estimate for that selected mass at that distance iteration
+##        print("vector sizes:" , np.size(hp_psd_fs), np.size(noise_psd))
+##        print('df h_fs:', hp_psd_fs.delta_f, 'df noise:', noise_psd.delta_f) #to check the df of each
+#
+#        hp_psd_fs = psd.interpolate(hp_psd_fs, noise_psd.delta_f) #interpolate the larger df of the two to match
+##        print("vector sizes:" , np.size(hp_psd_fs), np.size(noise_psd))
+#
+#        print(noise_psd.sample_frequencies[-10:])
+#        print(hp_psd_fs.sample_frequencies[-10:])
+#        print(np.size(noise_psd.sample_frequencies), np.size(hp_psd_fs.sample_frequencies))
         
         
-# #        psd_ratio_pycbc_welch = (4.0 * hp_psd_fs  ) / (noise_psd[0:np.size(hp_psd_fs)]) 
-# #        snr_squared_pycbc_welch = psd_ratio_pycbc_welch.sum()
-# #        snr_estimate_pycbc_welch = np.sqrt(snr_squared_pycbc_welch)
+#        psd_ratio_pycbc_welch = (4.0 * hp_psd_fs  ) / (noise_psd[0:np.size(hp_psd_fs)]) 
+#        snr_squared_pycbc_welch = psd_ratio_pycbc_welch.sum()
+#        snr_estimate_pycbc_welch = np.sqrt(snr_squared_pycbc_welch)
         
-#         #repeating all of the above with fft since pycbc is a butthole
-#         #hp = zero_finder.last_zero_finder(hp.copy(), 1e-14)
-#         #h_ts = zero_finder.first_zero_finder(hp, 1e-15)
-#         h_ts = hp.copy()
+        #repeating all of the above with fft since pycbc is a butthole
+        #hp = zero_finder.last_zero_finder(hp.copy(), 1e-14)
+        #h_ts = zero_finder.first_zero_finder(hp, 1e-15)
+        h_ts = hp.copy()
         
-#         signal_freqs = np.fft.fftfreq(np.size(h_ts))
-#         signal_mask = signal_freqs > 0
-#         raw_fft_h_ts = np.fft.fft(h_ts)
-#         psd_of_h_ts = 2.0 * ( np.abs( raw_fft_h_ts / float( np.size(h_ts) ) ) )** 2.0
+        signal_freqs = np.fft.fftfreq(np.size(h_ts))
+        signal_mask = signal_freqs > 0
+        raw_fft_h_ts = np.fft.fft(h_ts)
+        psd_of_h_ts = 2.0 * ( np.abs( raw_fft_h_ts / float( np.size(h_ts) ) ) )** 2.0
 
-#         #print("vector sizes:" , np.size(psd_of_h_ts), np.size(psd_of_noise))
-#         fft_psd = np.interp(noise_freqs, signal_freqs, psd_of_h_ts)
-#         #print("vector sizes:" , np.size(fft_psd), np.size(psd_of_noise))
+        #print("vector sizes:" , np.size(psd_of_h_ts), np.size(psd_of_noise))
+        fft_psd = np.interp(noise_freqs, signal_freqs, psd_of_h_ts)
+        #print("vector sizes:" , np.size(fft_psd), np.size(psd_of_noise))
 
-#         #calculate snr
-#         psd_ratio_fft = (4.0 * fft_psd[noise_mask]) / (psd_of_noise[noise_mask])
-#         snr_squared_fft = psd_ratio_fft.sum()
-#         snr_estimate_fft = np.sqrt(snr_squared_fft)
+        #calculate snr
+        psd_ratio_fft = (4.0 * fft_psd[noise_mask]) / (psd_of_noise[noise_mask])
+        snr_squared_fft = psd_ratio_fft.sum()
+        snr_estimate_fft = np.sqrt(snr_squared_fft)
         
         
-#         #3.3.1 packages the snr vs distance vector into a 2d array of mass vs distance
-#         snr_values_row_mass_column_distance[i,j] = snr_estimate_fft #snr_estimate_pycbc_welch
+        #3.3.1 packages the snr vs distance vector into a 2d array of mass vs distance
+        snr_values_row_mass_column_distance[i,j] = snr_estimate_fft #snr_estimate_pycbc_welch
 
-# # 4 - for loop through mass vs distance array and return a new array of -------------------------------------------------------------
-#         #mass vs distance the snr is closest to the chosen value of ten
-#     #4.1 - initialize snr_threshold value
-#     #4.2 - loop through the rows of the snr_values_row_mass_column_distance array
-#     #4.2.1 - for each row get the column index of snr closest to threshold value of 10
-#     #4.3 - with the column index, get the distance value for that snr
-#     #4.4 - package mass, and distance into two respective vectors for plotting
+# 4 - for loop through mass vs distance array and return a new array of -------------------------------------------------------------
+        #mass vs distance the snr is closest to the chosen value of ten
+    #4.1 - initialize snr_threshold value
+    #4.2 - loop through the rows of the snr_values_row_mass_column_distance array
+    #4.2.1 - for each row get the column index of snr closest to threshold value of 10
+    #4.3 - with the column index, get the distance value for that snr
+    #4.4 - package mass, and distance into two respective vectors for plotting
     
-# print(snr_values_row_mass_column_distance)
-# print(snr_values_row_mass_column_distance[0,:])
+print(snr_values_row_mass_column_distance)
+print(snr_values_row_mass_column_distance[0,:])
 
-# #4.1 - initialize SNR threshold value
-# snr_threshold = 8.0
+#4.1 - initialize SNR threshold value
+snr_threshold = 8.0
 
-# distance_with_snr_threshold = np.zeros(np.size(mass_array))
-# #distance_with_snr_threshold = []
-# #4.2 - loop through the rows of the snr_values_row_mass_column_distance array
-# for i in range(np.size(mass_array)):
+distance_with_snr_threshold = np.zeros(np.size(mass_array))
+#distance_with_snr_threshold = []
+#4.2 - loop through the rows of the snr_values_row_mass_column_distance array
+for i in range(np.size(mass_array)):
     
-#     #4.2.1 - for each row get the column index of snr closest to threshold value of 8
-#     index_of_min = np.argmin(np.abs(snr_values_row_mass_column_distance[i,:] - snr_threshold))
+    #4.2.1 - for each row get the column index of snr closest to threshold value of 8
+    index_of_min = np.argmin(np.abs(snr_values_row_mass_column_distance[i,:] - snr_threshold))
     
-#     #4.3/.4 - with the column index, get the distance value for that snr
-#     distance_with_snr_threshold[i] = distances_array[index_of_min]
-#     #distance_with_snr_threshold.append(distances_array[index_of_min])
+    #4.3/.4 - with the column index, get the distance value for that snr
+    distance_with_snr_threshold[i] = distances_array[index_of_min]
+    #distance_with_snr_threshold.append(distances_array[index_of_min])
     
     
-# print(distance_with_snr_threshold)
-# print(np.size(distance_with_snr_threshold))      
+print(distance_with_snr_threshold)
+print(np.size(distance_with_snr_threshold))      
   
-# # 5 - plottinng the snr threshold distance for each mass
+# 5 - plottinng the snr threshold distance for each mass
 
-# plt.loglog(mass_array, distance_with_snr_threshold, label=('snr threshold: '+str(snr_threshold)))
-# plt.xlabel('Mass (sol)')
-# plt.ylabel('Distance (pc)')
-# plt.grid()
-# plt.legend()
-# plt.title('Mass vs Distance Where SNR of 8.0 is Reached')
-# plt.show()
+plt.loglog(mass_array, distance_with_snr_threshold, label=('snr threshold: '+str(snr_threshold)))
+plt.xlabel('Mass (sol)')
+plt.ylabel('Distance (pc)')
+plt.grid()
+plt.legend()
+plt.title('Mass vs Distance Where SNR of 8.0 is Reached')
+plt.show()
 
 
     

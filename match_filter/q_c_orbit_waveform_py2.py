@@ -12,7 +12,7 @@ import numpy as np
 
 #Chirp Mass Calculator - enter masses as solar mass multiples (floats)
 def chirp_mass(m1, m2):
-    sol_mass = 1.989*10e30
+    sol_mass = 1.989e30
     mass1 = sol_mass*m1
     mass2 = sol_mass*m2
     
@@ -24,8 +24,8 @@ def constant_f_strain_waveform(m1, m2, f_gw, duration, dt, r, theta, phi):
     
    #Unchanging parameters to define
     M_c = chirp_mass(m1,m2)
-    G = 6.67*10e-11
-    c = 3.0*1e8
+    G = 6.67e-11
+    c = 3.0e8
     distance = r*(3.0857e16)
     A = (4.0/distance)*((G*M_c) / (c**2.0))**(5.0/3.0)
     
@@ -49,8 +49,8 @@ def strain_waveform_in_retarded_time(m1, m2, f_lower, dt, r, theta):
     
     #Unchanging parameters to define
     M_c = chirp_mass(m1,m2)
-    G = 6.67*10e-11
-    c = 3.0*1e8
+    G = 6.67e-11
+    c = 3.0e8
     distance = r*(3.0857e16)
     A = (4.0/distance)*((G*M_c) / (c**2))**(5/3)
     
@@ -80,8 +80,8 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
     
     #Unchanging parameters to define
     M_c = chirp_mass(m1,m2)
-    G = 6.67*10e-11
-    c = 3.0*1e8
+    G = 6.67e-11
+    c = 3.0e8
     distance = r*(3.0857e16)
     A = (1.0/distance)*((G*M_c) / (c**2.0))**(5.0/4.0)
     
@@ -108,9 +108,9 @@ def strain_waveform_observer_time(m1, m2, f_lower, dt, r, theta):
 def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     
     #define some important quantities
-    sol_mass = 1.989*10e30
-    G = 6.67*10e-11
-    c = 3.0*1e8
+    sol_mass = 1.989e30
+    G = 6.67e-11
+    c = 3.0e8
     distance = r*(3.0857e16)
     M_c = chirp_mass(m1,m2)
     m_tot = float( sol_mass * (m1 + m2) )
@@ -127,7 +127,7 @@ def obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta):
     tau_min = ( num / den )**(8.0/3.0)
     
     #2 - find time to coalescence using equation 4.21, given a lower frequency limit
-    time_until_coalescence = 2.18*((1.21*1.989*10e30)/M_c)**(5.0/3.0) * (100.0/float(f_lower))**(8.0/3.0)
+    time_until_coalescence = 2.18*((1.21*1.989e30)/M_c)**(5.0/3.0) * (100.0/float(f_lower))**(8.0/3.0)
     
     #3 - find tau now as a function of observer time instead of retarded time (pg 170)
     obs_t = np.arange(0, int(time_until_coalescence - tau_min), dt)
