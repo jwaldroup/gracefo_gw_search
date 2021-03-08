@@ -55,19 +55,42 @@ def last_zero_finder_02(waveform):
     
     return truncated_waveform
 
-def first_zero_finder_02(waveform, component_mass, f_low, dt):
+def last_zero_finder_03(waveform, component_mass, dt):
     
-    #Overview
-    #input waveform and f_low 
-    #calculate the period from the starting frequency (f_low)
-    #take period and get index of the point at which the wavelength ends ()
-    #search this waveform for min of absolute to find the root
-    #truncate waveform
+    #this one isn't working
+    
     
     uncut = waveform.copy()
     
+    #define constants and calculate chirp mass
+    sol_mass = 1.989e30
+    G = 6.67e-11
+    c = 3.0e8 
+    mass1 = sol_mass*component_mass
+    m_chirp = ( ((mass1*mass1)**(3.0/5.0)) / ( (mass1+mass1)**(1.0/5.0) ))
     
-    #calculate chirp mass
+    #calculate f_isco
+    f_isco = ( 1.0/(6.0*(6.0**(1.0/2.0))*np.pi) ) * ( (c**3.0) / (G * 2.0 * mass1 ) )
+    
+    #calculate f_min of bandwidth in which one full cycle of the gravitational wave strain occurs
+    f_min = (f_isco**(-5.0/3.0) + ( 32.0*(np.pi**(8.0/3.0)) ) * ( ((c**3.0) / (m_chirp * G))**(-5.0/3.0) ) )**(-3.0/5.0)
+    
+    #calculate wave period of cycle
+    period = 1.0 / f_min
+    
+    #caluclate cutoff index and truncate waveform
+    wavelength_index = int(period / dt )
+    print(wavelength_index)
+    cut_index = np.argmin( np.abs(uncut[(-wavelength_index):] ) )
+    print(cut_index)
+    truncated_waveform = uncut[0:(-wavelength_index+cut_index)]
+    return truncated_waveform
+
+def first_zero_finder_02(waveform, component_mass, f_low, dt):
+    
+    uncut = waveform.copy()
+    
+    #define constants and calculate chirp mass
     sol_mass = 1.989e30
     G = 6.67e-11
     c = 3.0e8 
@@ -80,11 +103,9 @@ def first_zero_finder_02(waveform, component_mass, f_low, dt):
     #calculate wave period of the cycle
     period = 1.0 / f_max
     
-    #find cutoff index
+    #find cutoff index and truncate waveform
     wavelength_end_index =  int(period / dt)
-    
     min_index = np.argmin(np.abs(uncut[0:wavelength_end_index]))
-    
     truncated_waveform = uncut[min_index:]
     
     return truncated_waveform
@@ -138,7 +159,7 @@ def first_zero_finder_03(waveform):
 
 import q_c_orbit_waveform_py2 as q_c_py2
 
-m1 = 500
+m1 = 1000
 m2 = m1
 f_lower = 0.1
 dt = 0.1
@@ -148,6 +169,7 @@ theta = 0
 obs_t, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta)
 
 hp_cut = last_zero_finder_02(hp)
+#hp_cut = last_zero_finder_03(hp, m1, dt)
 obs_t_cut = obs_t[0:np.size(hp_cut)]
 
 #hp_cut = first_zero_finder_03(hp_cut)
