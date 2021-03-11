@@ -143,7 +143,6 @@ filtered2c.append_zeros((np.size(filtered1)-np.size(filtered2)))
 merged_noise = np.array(filtered1) + np.array(filtered2c)
 merged_noise_ts = types.timeseries.TimeSeries(merged_noise, delta_t=0.1) #ensures same delta_t
 
-
 #Compare merged noise curves with gracefo data
 seg_num = 15
 noise_psd = welch_function.pycbc_welch(merged_noise_ts, seg_num)

@@ -28,7 +28,7 @@ import zero_finder
 # 5. Inject one polarizations strain from template into noise curve
 # 6. Perform Match Filter/test snr output
 
-## 1 - Read in Grace-FO data to model------------------------------------------
+#1 - read in gracefo model noise data from csv----------------------------------------------------------------------------------------
 
 #Import data from csv
 fileobj = open('GRACE-Copy.csv', 'r')
@@ -46,48 +46,35 @@ grace_freqs = data_array[0:,0]
 grace_signal = data_array[0:,1]
 grace_asd = grace_signal / 220.0e3 #converts between m/sqr(Hz) and 1/sqr(Hz)
 
-### 2 - Build Noise Curve Model
 
-##Curve 1: the "hump"---------------------------------------------------------------------------------------------------------------------
-N = 2000000 #long enough to encompass waveforms with a f_low of 0.1 and minimal mass of 100 sol masses each 
+
+## 2. Model data with two white noise curves and lowpass filters------------------------------------------------------------
+
+#Curve 1 parameters
+N = 2000000 #Possibly increase in length to incorporate lower component mass
 cutoff = 0.001 
 order = 950 
 beta = 17  
-seg_num = 15
-
+seg_size = 150000
+        
 #noise signal
 np.random.seed(138374923)
 noise1 = np.random.uniform(-1, 1, size=N)
-    
+            
 #convert to TimeSeries pycbc object
 noise1_ts = types.timeseries.TimeSeries(noise1, delta_t=0.1) #delta_t = 0.1 to match gracefo sample frequency of 10 Hz
-
+        
 #adjust amplitude
 noise1_ts = noise1_ts * 10e-8
-
+        
 #filter it
 filtered1 = noise1_ts.lowpass_fir(cutoff, order, beta=beta)
 
-#psd.welch to create psd
-noise1_psd = welch_function.pycbc_welch(filtered1, seg_num)
 
-#conversion to asd
-noise1_asd = np.sqrt(noise1_psd)
-
-#some parameters
-df = noise1_asd.delta_f
-dt = filtered1.delta_t 
-T = dt * N
-f_s = 1.0 / dt
-f_nyq = f_s / 2.0
-#print('Noise Curve 1 - ','N:', N, 'dt:', 0.1,'df:', df,'f_s:', f_s,'f_nyq:', f_nyq)
-
-##Curve 2: the "linear" portion------------------------------------------------------------------------------
-N = 2000000
+#Curve 2 parameters    
 cutoff = 0.00001
-order = 20000
-beta = 15.0
-seg_num = 15
+order = 14000
+beta = 11.0
 
 #noise signal
 np.random.seed(138374923)
@@ -97,31 +84,13 @@ noise2 = np.random.uniform(-1, 1, size=N)
 noise2_ts = types.timeseries.TimeSeries(noise2, delta_t=0.1)
 
 #adjust amplitude
-noise2_ts = noise2_ts * 10e-6
+noise2_ts = noise2_ts * 10e-8
 
 #filter it
 filtered2 = noise2_ts.lowpass_fir(cutoff, order, beta=beta)
 
-#psd.welch to create psd
-noise2_psd = welch_function.pycbc_welch(filtered2, seg_num)
 
-#conversion to asd
-noise2_asd = np.sqrt(noise2_psd)
-
-#some parameters
-df = noise2_asd.delta_f
-dt = filtered2.delta_t
-T = dt * N
-f_s = 1.0 / dt
-f_nyq = f_s / 2.0
-#print('Noise Curve 2 - ','N:', N, 'dt:', 0.1,'df:', df,'f_s:', f_s,'f_nyq:', f_nyq)
-
-
-#----------------------------------------------------------------------------------------------------------
-
-## 3 - Merge noise curves
-
-## 3 - Merge noise curves
+# 3 - Merge noise curves---------------------------------------------------------------------------------------
 
 #uncomment to check dimensions of timeseries
 #print(np.size(filtered1), np.size(filtered2))
@@ -133,43 +102,61 @@ filtered2c.append_zeros((np.size(filtered1)-np.size(filtered2)))
 #uncomment to check that the sizes match
 #print(np.size(filtered1), np.size(filtered2c))
 
-#Add the two
+#Add the two 
 merged_noise = np.array(filtered1) + np.array(filtered2c)
 merged_noise_ts = types.timeseries.TimeSeries(merged_noise, delta_t=0.1) #ensures same delta_t
 
-#print("merged noise curve properties:", 'size:', np.size(merged_noise_ts), 'dt:', merged_noise_ts.delta_t, 'df:', merged_noise_ts.delta_f )
+#psd.welch to create psd
+noise1_psd = welch_function.pyc_welch(filtered1, seg_size)
+noise1_asd = np.sqrt(noise1_psd)
+
+noise2_psd = welch_function.pyc_welch(filtered2c, seg_size)
+noise2_asd = np.sqrt(noise2_psd)
+
+noise_psd = welch_function.pyc_welch(merged_noise_ts, seg_size)
+
+#Compare merged noise curves with gracefo data
+plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
+plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
+
+plt.loglog(grace_freqs, grace_asd, label='gracefo asd')
+plt.loglog(noise_psd.sample_frequencies, np.sqrt(noise_psd), label='noise model asd')
+
+plt.legend()
+plt.xlabel('frequency (Hz)')
+plt.ylabel('strain amplitude spectral density (1/sqrt(Hz))')
+plt.grid()
+plt.show()
 
 # 4 - Generate waveform template----------------------------------------------------------------------------
 
 #Generate inspiral model waveform from q_c_orbit_waveform_py2
 #binary system parameters
-m1 = 500.0 #solar mass multiples
-m2 = 500.0
-f_low = 0.1
+m1 = 1000.0 #solar mass multiples
+m2 = 1000.0
+f_low = 0.05
 r = 1000.0 #in parsecs
-dt = 0.1
+dt = 0.01
 theta = 0.0 
 
-#generate waveform as seen by observer
+#generate inspiral waveform
 t_array, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_low, dt, r, theta)
+                
+#downsample the waveform to gracef's sampling frequency (ie dt=0.1)
+T = dt * np.size(hp)
+dt = 0.1
+resample_x_values = np.arange(0, T, dt)
+hp = np.interp(resample_x_values, t_array, hp.copy())
+        
+#prep waveform with truncation
+hp_cut = zero_finder.first_zero_finder_02(hp, m1, f_low, dt)
+obs_t_cut = resample_x_values[-np.size(hp_cut):]
+        
+hp_cut = zero_finder.last_zero_finder_03(hp_cut, m1, dt)
+obs_t_cut = obs_t_cut[0:np.size(hp_cut)]
 
-
-#note for later - get abs_tol from amplitude of wave at each r value and input automatically into zero_finder functions
-# :)
-
-#truncate such that graph ends by going smoothly to zero
-hp = zero_finder.last_zero_finder(hp, abs_tol=1e-14)
-hp = zero_finder.first_zero_finder(hp, abs_tol=1e-15)
-
-#convert strain arrays to timeseries objects
-hp_ts = types.timeseries.TimeSeries(hp, merged_noise_ts.delta_t) #ensures same delta_t
-hc_ts = types.timeseries.TimeSeries(hc, merged_noise_ts.delta_t)
-
-#print('Generated Waveform properties:', 'size:', np.size(hp_ts), 
-#          'duration:', hp_ts.duration, 'dt:', hp_ts.delta_t, 
-#          'df:', hp_ts.delta_f)
-
-
+hp_ts = types.timeseries.TimeSeries(hp_cut, dt)
+        
 #Testing matched filter with zero mean sinusoid waveform------------------------------------------------
 #Generate test sinusoidal waveform at constant frequency to try injecting instead
 
@@ -201,25 +188,6 @@ waveform = hp_ts.copy()
 
 # #increase length of waveform to match noise curve
 waveform.resize(np.size(merged_noise_ts))
-
-#print('Resized Waveform properties:', 'size:', np.size(waveform), 
-#         'duration:', waveform.duration, 'dt:', waveform.delta_t, 
-#         'df:', waveform.delta_f)
-
-
-#Resampling of waveform incase waveform generated at dt other than 0.1------------------------------------------------
-#Resample ( I may not need this if my waveform generator already creates a waveform at 0.1 dt)
-
-#resample_num = int(waveform.duration / 0.1)
-#waveform_resampled = sp.signal.resample(waveform, resample_num)
-#waveform = types.timeseries.TimeSeries(waveform_resampled, delta_t = 0.1)
-#print('Resampled waveform:', 'size:', np.size(waveform), 'duration:', 
-#      waveform.duration, 'dt:', waveform.delta_t, 'df:', waveform.delta_f )
-
-# waveform.resize(np.size(combined_ts))
-# print('Resampled and resized:', 'size:', np.size(waveform), 
-#       'duration:', waveform.duration, 'dt:', waveform.delta_t, 
-#       'df:', waveform.delta_f )
 
 # ## 5 - Injection ----------------------------------------------------------------------------------------------------
 

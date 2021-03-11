@@ -19,12 +19,12 @@ def pycbc_welch(ts, segnum):
                           seg_stride=seg_stride, avg_method='mean')
     return noise_fs
 
-def test_py_welch(ts, seg_size):
+def pyc_welch(ts, seg_size):
     
     from pycbc import psd
     import numpy as np
     
-    seg_len = seg_size
+    seg_len = int(seg_size)
     seg_stride = int(seg_len / 2)
     
     fs = psd.welch(ts, seg_len=seg_len, seg_stride=seg_stride, avg_method='mean')

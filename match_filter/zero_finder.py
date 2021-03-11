@@ -73,16 +73,16 @@ def last_zero_finder_03(waveform, component_mass, dt):
     f_isco = ( 1.0/(6.0*(6.0**(1.0/2.0))*np.pi) ) * ( (c**3.0) / (G * 2.0 * mass1 ) )
     
     #calculate f_min of bandwidth in which one full cycle of the gravitational wave strain occurs
-    f_min = (f_isco**(-5.0/3.0) + ( 32.0*(np.pi**(8.0/3.0)) ) * ( ((c**3.0) / (m_chirp * G))**(-5.0/3.0) ) )**(-3.0/5.0)
+    f_min = (f_isco**(-5.0/3.0) + (32.0*(np.pi**(8.0/3.0)) ) * ( ((c**3.0) / (m_chirp * G))**(-5.0/3.0) ) )**(-3.0/5.0)
     
     #calculate wave period of cycle
     period = 1.0 / f_min
     
     #caluclate cutoff index and truncate waveform
     wavelength_index = int(period / dt )
-    print(wavelength_index)
+    #print(wavelength_index)
     cut_index = np.argmin( np.abs(uncut[(-wavelength_index):] ) )
-    print(cut_index)
+    #print(cut_index)
     truncated_waveform = uncut[0:(-wavelength_index+cut_index)]
     return truncated_waveform
 
@@ -159,25 +159,26 @@ def first_zero_finder_03(waveform):
 
 import q_c_orbit_waveform_py2 as q_c_py2
 
-m1 = 1000
+m1 = 5000
 m2 = m1
-f_lower = 0.1
+f_lower = 0.05
 dt = 0.1
 r = 1000.0
 theta = 0
 
 obs_t, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta)
 
-hp_cut = last_zero_finder_02(hp)
-#hp_cut = last_zero_finder_03(hp, m1, dt)
+#hp_cut = last_zero_finder_02(hp)
+hp_cut = last_zero_finder_03(hp, m1, dt)
 obs_t_cut = obs_t[0:np.size(hp_cut)]
 
 #hp_cut = first_zero_finder_03(hp_cut)
 hp_cut = first_zero_finder_02(hp_cut, m1, f_lower, dt)
 obs_t_cut = obs_t_cut[-np.size(hp_cut):]
+print(np.size(hp_cut))
 
-plt.plot(obs_t, hp, label='uncut')
-plt.plot(obs_t_cut, hp_cut, label='cut')
-plt.grid()
-plt.legend(loc='upper left')
-plt.show()
+# plt.plot(obs_t, hp, label='uncut')
+# plt.plot(obs_t_cut, hp_cut, label='cut')
+# plt.grid()
+# plt.legend(loc='upper left')
+# plt.show()
