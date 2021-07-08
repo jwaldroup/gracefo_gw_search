@@ -157,28 +157,34 @@ def first_zero_finder_03(waveform):
 
 #Testing on actual generated waveforms
 
-import q_c_orbit_waveform_py2 as q_c_py2
+# import q_c_orbit_waveform_py2 as q_c_py2
 
-m1 = 5000
-m2 = m1
-f_lower = 0.05
-dt = 0.1
-r = 1000.0
-theta = 0
+# m1 = 10000
+# m2 = m1
+# f_lower = 0.05
+# dt = 0.1
+# r = 1000.0
+# theta = 0
 
-obs_t, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta)
+# obs_t, hp, hc = q_c_py2.obs_time_inspiral_strain(m1, m2, f_lower, dt, r, theta)
 
-#hp_cut = last_zero_finder_02(hp)
-hp_cut = last_zero_finder_03(hp, m1, dt)
-obs_t_cut = obs_t[0:np.size(hp_cut)]
+# #hp_cut = last_zero_finder_02(hp)
+# hp_cut = last_zero_finder_03(hp, m1, dt)
+# obs_t_cut = obs_t[0:np.size(hp_cut)]
 
-#hp_cut = first_zero_finder_03(hp_cut)
-hp_cut = first_zero_finder_02(hp_cut, m1, f_lower, dt)
-obs_t_cut = obs_t_cut[-np.size(hp_cut):]
-print(np.size(hp_cut))
+# #hp_cut = first_zero_finder_03(hp_cut)
+# hp_cut = first_zero_finder_02(hp_cut, m1, f_lower, dt)
+# obs_t_cut = obs_t_cut[-np.size(hp_cut):]
+# print(np.size(hp_cut))
+
+# # hpc = hp_cut.copy()
+# # hpc.resize(239505)
+            
+# # hpc = np.roll(hpc, (np.size(hpc)/2 - np.size(hp_cut)/2))
 
 # plt.plot(obs_t, hp, label='uncut')
 # plt.plot(obs_t_cut, hp_cut, label='cut')
+# #plt.plot(hpc, label='rolled')
 # plt.grid()
 # plt.legend(loc='upper left')
 # plt.show()

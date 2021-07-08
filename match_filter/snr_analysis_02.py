@@ -114,27 +114,27 @@ filtered2c.append_zeros((np.size(filtered1)-np.size(filtered2)))
 merged_noise = np.array(filtered1) + np.array(filtered2c)
 merged_noise_ts = types.timeseries.TimeSeries(merged_noise, delta_t=0.1) #ensures same delta_t
 
-# #psd.welch to create psd
-# noise1_psd = welch_function.pyc_welch(filtered1, seg_size)
-# noise1_asd = np.sqrt(noise1_psd)
+#psd.welch to create psd
+noise1_psd = welch_function.pyc_welch(filtered1, seg_size)
+noise1_asd = np.sqrt(noise1_psd)
 
-# noise2_psd = welch_function.pyc_welch(filtered2c, seg_size)
-# noise2_asd = np.sqrt(noise2_psd)
+noise2_psd = welch_function.pyc_welch(filtered2c, seg_size)
+noise2_asd = np.sqrt(noise2_psd)
 
-# noise_psd = welch_function.pyc_welch(merged_noise_ts, seg_size)
+noise_psd = welch_function.pyc_welch(merged_noise_ts, seg_size)
 
-# #Compare merged noise curves with gracefo data
-# plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
-# plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
+#Compare merged noise curves with gracefo data
+plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
+plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label='noise 2')
 
-# plt.loglog(grace_freqs, grace_asd, label='gracefo asd')
-# plt.loglog(noise_psd.sample_frequencies, np.sqrt(noise_psd), label='noise model asd')
+plt.loglog(grace_freqs, grace_asd, label='gracefo asd')
+plt.loglog(noise_psd.sample_frequencies, np.sqrt(noise_psd), label='noise model asd')
 
-# plt.legend()
-# plt.xlabel('frequency (Hz)')
-# plt.ylabel('strain amplitude spectral density (1/sqrt(Hz))')
-# plt.grid()
-# plt.show()
+plt.legend()
+plt.xlabel('frequency (Hz)')
+plt.ylabel('strain amplitude spectral density (1/sqrt(Hz))')
+plt.grid()
+plt.show()
 
 
 
@@ -142,10 +142,10 @@ merged_noise_ts = types.timeseries.TimeSeries(merged_noise, delta_t=0.1) #ensure
 
 #m_array = np.logspace(500, 1000) #in sol masses
 #d_array = np.logspace(1000, 2000) #in pc
-m_array = np.arange(500, 10000, 200)
-d_array = np.arange(100, 5000, 100)
-m_array = np.array([500])
-d_array = np.array([2000, 3000, 4000, 5000, 6000])
+m_array = np.arange(1000, 10000, 1000)
+d_array = np.arange(1000, 5000, 1000)
+#m_array = np.array([500])
+#d_array = np.array([2000, 3000, 4000, 5000, 6000])
 
 
 

@@ -50,11 +50,11 @@ grace_asd = grace_signal / 220.0e3 #converts between m/sqr(Hz) and 1/sqr(Hz)
 #1.1 Build Noise Curve Model
 
 #Curve 1 parameters
-N = 2000000 #Possibly increase in length to incorporate lower component mass
-cutoff = 0.001 
-order = 950 
-beta = 17  
-seg_size = 150000
+N = 100000 #Possibly increase in length to incorporate lower component mass
+cutoff = 0.0001 
+# order = 950 
+# beta = 17  
+seg_size = 64*256
         
 #noise signal
 np.random.seed(138374923)
@@ -67,13 +67,18 @@ noise1_ts = types.timeseries.TimeSeries(noise1, delta_t=0.1) #delta_t = 0.1 to m
 noise1_ts = noise1_ts * 10e-8
         
 #filter it
-filtered1 = noise1_ts.lowpass_fir(cutoff, order, beta=beta)
+for i in [700, 1500]:
+    for j in [40, 50]:
+        filtered1 = noise1_ts.lowpass_fir(cutoff, i, beta=j)
 
-
+        noise1_psd = welch_function.pyc_welch(filtered1, seg_size)
+        noise1_asd = np.sqrt(noise1_psd)
+        
+        #plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label=('C1: ' + str(i) + ', ' +str(j)))
+        
+        
 #Curve 2 parameters    
 cutoff = 0.00001
-order = 20000
-beta = 20.0
 
 #noise signal
 np.random.seed(138374923)
@@ -83,43 +88,37 @@ noise2 = np.random.uniform(-1, 1, size=N)
 noise2_ts = types.timeseries.TimeSeries(noise2, delta_t=0.1)
 
 #adjust amplitude
-noise2_ts = noise2_ts * 10e-8
+noise2_ts = noise2_ts * 10e-11
 
-for i in [14000]:
-    for j in [11.0]:
+for i in [10000, 40000]:
+    for j in [12.0, 50.0]:
         filtered2 = noise2_ts.lowpass_fir(cutoff, i, beta=j)
 
 
         filtered2c = filtered2.copy()
-        print(np.size(filtered1), np.size(filtered2c))
+        #print(np.size(filtered1), np.size(filtered2c))
         filtered2c.append_zeros((np.size(filtered1)-np.size(filtered2)))
         
         noise2_psd = welch_function.pyc_welch(filtered2c, seg_size)
         noise2_asd = np.sqrt(noise2_psd)
         
-        plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label=(str(i)+', '+str(j)))
+        plt.loglog(noise2_asd.sample_frequencies, noise2_asd, label=('C2: ' + str(i)+', '+str(j)))
 
 
 
-#uncomment to check that the sizes match
-print(np.size(filtered1), np.size(filtered2c))
+# #uncomment to check that the sizes match
+# print(np.size(filtered1), np.size(filtered2c))
 
 #Add the two 
-merged_noise = np.array(filtered1) + np.array(filtered2c)
-merged_noise_ts = types.timeseries.TimeSeries(merged_noise, delta_t=0.1) #ensures same delta_t
+# merged_noise = np.array(filtered1) + np.array(filtered2c)
+# merged_noise_ts = types.timeseries.TimeSeries(merged_noise, delta_t=0.1) #ensures same delta_t
 
-#psd.welch to create psd
-noise1_psd = welch_function.pyc_welch(filtered1, seg_size)
-noise1_asd = np.sqrt(noise1_psd)
-
-
-
-noise_psd = welch_function.pyc_welch(merged_noise_ts, seg_size)
+# noise_psd = welch_function.pyc_welch(merged_noise_ts, seg_size)
 
 #Compare merged noise curves with gracefo data
-plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
+#plt.loglog(noise1_asd.sample_frequencies, noise1_asd, label='noise 1')
 plt.loglog(grace_freqs, grace_asd, label='gracefo asd')
-plt.loglog(noise_psd.sample_frequencies, np.sqrt(noise_psd), label='noise model asd')
+#plt.loglog(noise_psd.sample_frequencies, np.sqrt(noise_psd), label='noise model asd')
 
 plt.legend()
 plt.xlabel('frequency (Hz)')

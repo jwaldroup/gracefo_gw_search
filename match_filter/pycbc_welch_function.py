@@ -19,6 +19,18 @@ def pycbc_welch(ts, segnum):
                           seg_stride=seg_stride, avg_method='mean')
     return noise_fs
 
+def pyplot_welch(data, NFFT_length, sampling_frequency, segment_pad_to_length):
+    
+    import numpy as np
+    import matplotlib.pyplot as plt
+    
+    overlap = int(np.size(NFFT_length)/ 2)
+    Pxx, freqs = plt.psd(data, NFFT=NFFT_length, Fs=sampling_frequency,
+                                pad_to=segment_pad_to_length, noverlap=overlap)
+    
+    return Pxx, freqs
+    
+
 def pyc_welch(ts, seg_size):
     
     from pycbc import psd
@@ -38,9 +50,21 @@ def test_welch(ts, fs, seg_size):
     
     nperseg = int(seg_size)
     noverlap = nperseg // 2
-    freqs, psd = signal.welch(ts, fs, nperseg=nperseg, noverlap=noverlap)
+    freqs, psd = signal.welch(ts, fs, nperseg=nperseg, noverlap=noverlap, 
+                              scaling='density' )
     
     return freqs, psd
+    
+def test_welch_2(ts, fs, seg_size):
+    
+    from scipy import signal
+    
+    nperseg = int(seg_size)
+    noverlap = nperseg // 2
+    freqs, ps = signal.welch(ts, fs, nperseg=nperseg, noverlap=noverlap, 
+                              scaling='spectrum' )
+    return freqs, ps    
+    
     
 def scipy_welch(ts, fs, seg_num):
     

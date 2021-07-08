@@ -11,8 +11,8 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 import pycbc_welch_function as welch_function
-from pycbc import psd
-from pycbc import types
+# from pycbc import psd
+# from pycbc import types
 
 #td total number of samples
 #n = 1000
@@ -40,39 +40,36 @@ y3 = 0.5*np.sin(20.0*ang*x)
 y = y1+y2+y3
 
 ##Calculate frequencies, FFT, remove complex conjugates of data,
-freqs = np.fft.fftfreq(n)
+freqs = np.fft.fftfreq(n, d=0.1)
 mask = freqs > 0
 fft_vals = np.fft.fft(y)
 
+df = freqs[1]-freqs[0]
+print(df)
+
 #calculate the fft PSD
-fft_psd_1 = 2.0 * ( np.abs(fft_vals / float(n) ) ) ** 2.0
+fft_psd_1 = 2.0 * ( np.abs(fft_vals / float(n)) ) ** 2.0
+
+fft_psd_test = 2.0 * ( np.abs(fft_vals / float(n)) ** 2.0) / (df)
 
 #checking psd
 std_y = np.std(y)
 var_y = std_y**2.0
 print(var_y, np.sum(fft_psd_1[mask]))
+print(var_y, np.sum(fft_psd_test)/2.0)
 
-#calculate the welch PSD
-dt = float(Lx)/float(n)
-segnum = 80
-y_ts = types.timeseries.TimeSeries(y, delta_t=dt)
-welch_psd = welch_function.pycbc_welch(y_ts, segnum)
+#redo below section to compare psd's
 
-test_welch_psd = welch_function.test_py_welch(y_ts, 256)
+#welch method to compare
+welch_ps_freqs, welch_ps = welch_function.test_welch_2(y, 10.0, int(np.size(y)))
+welch_psd_freqs, welch_psd = welch_function.test_welch(y, 10.0, int(np.size(y)))
 
-#calulate the scipy PSD
-#freqs2, psd2 = welch_function.scipy_welch(y, s_freq, 80)
+#plt.plot(welch_ps_freqs, welch_ps, label='welch ps')
+#plt.plot(freqs[mask], fft_psd_1[mask], label= 'ps via fft')
 
-#test scipy psd for finding segmentation
-freqs3, psd3 = welch_function.test_welch(y, s_freq, 256)
-
-plt.plot(freqs[mask], fft_psd_1[mask], label='fft psd 1')
-#plt.plot(welch_psd.sample_frequencies, welch_psd, label='pycbc welch')
-plt.plot(freqs3, psd3, label='test scipy welch')
-#plt.plot(freqs2, psd2, label='scipy welch')
-plt.plot(test_welch_psd.sample_frequencies, test_welch_psd, label='test py welch')
-plt.xlabel('frequencies (hz)')
-plt.ylabel('psd (1/hz)')
+plt.plot(welch_psd_freqs, welch_psd*1.5, label='welch psd') #1.5 is the hanning window correction
+plt.plot(freqs[mask], fft_psd_test[mask], label='psd via fft')
+plt.xlim(0, 0.1)
 plt.grid()
-plt.legend(loc='upper right')
+plt.legend()
 plt.show()
